@@ -191,3 +191,5 @@ It does not claim that:
 - the displayed pricing is final
 
 That distinction matters because the website is selling the **vision**, while the future VOD application will deliver the product.
+
+<!-- deploy: 2026-10-08T21:21:59.2150902+02:00 -->
