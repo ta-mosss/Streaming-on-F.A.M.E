@@ -1,296 +1,242 @@
-﻿import '../styles.css';
+import './styles/main.css';
+import { catalogue, categories, type Title } from './data/catalogue';
+import { initAnalytics, track } from './analytics';
 
-// ============================================================================
-// FULL PAGE MARKUP
-// ============================================================================
-const app = document.getElementById('app');
-if (!app) throw new Error('No #app element found in index.html');
+const app = document.querySelector<HTMLDivElement>('#app');
+if (!app) throw new Error('F.A.M.E app mount not found');
+
+const esc = (value: string) =>
+  value.replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c] ?? c));
+
+const featured = catalogue.find((item) => item.featured) ?? catalogue[0];
+
+const artworkMap: Record<string, string> = {
+  'city-of-dreams': '/assets/content/mock-2.jpg',
+  'roots-and-rhythm': '/assets/content/the-come-up.jpg',
+  'the-next-move': '/assets/content/stage-one.jpg',
+  'after-the-rain': '/assets/content/roots.jpg',
+  'future-africa': '/assets/content/mock-4.jpg',
+  'street-kings': '/assets/content/the-block.jpg',
+  'little-legends': '/assets/content/mini-1.jpg',
+  'voices-of-home': '/assets/content/mini-3.jpg',
+  'makers-of-tomorrow': '/assets/content/rise.jpg',
+  'the-last-dance': '/assets/content/mini-2.jpg',
+  'village-to-vision': '/assets/content/mock-1.jpg',
+  'midnight-radio': '/assets/content/city-lights.jpg',
+};
+
+const art = (item: Title) => artworkMap[item.id] ?? item.artwork;
+
+const card = (item: Title) => `
+  <article class="title-card">
+    <button class="title-poster" data-title="${esc(item.id)}" aria-label="Open ${esc(item.title)}">
+      <img src="${art(item)}" alt="${esc(item.title)} concept artwork" loading="lazy" decoding="async">
+      <span class="poster-kind">${esc(item.kind)}</span>
+      <span class="poster-action">View</span>
+    </button>
+    <div class="title-meta">
+      <div>
+        <h3>${esc(item.title)}</h3>
+        <p>${item.year} · ${esc(item.rating)} · ${esc(item.duration)}</p>
+      </div>
+      <button class="list-toggle" data-list="${esc(item.id)}" aria-label="Add ${esc(item.title)} to My List">+</button>
+    </div>
+  </article>`;
 
 app.innerHTML = `
-  <div class="site-shell">
-    <header class="site-header">
-      <a class="brand" href="#main">
-        <span class="brand-mark"><span>S</span></span>
-        <span class="brand-copy">
-          <strong>STREAMING ON</strong>
-          <b>F.A.M.E</b>
-          <small>YOUR STAGE. YOUR STORY.</small>
-        </span>
+  <div class="site">
+    <header class="site-header" id="top">
+      <a class="wordmark" href="#top" aria-label="Streaming on F.A.M.E home">
+        <img src="/assets/brand/fame-logo.webp" alt="Streaming on F.A.M.E">
       </a>
-      <nav class="desktop-nav">
-        <a href="#platform">Platform</a>
-        <a href="#experience">Experience</a>
-        <a href="#content">Content</a>
-        <a href="#pricing">Pricing</a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="#why">Why F.A.M.E</a>
+        <a href="#preview">Product</a>
+        <a href="#catalogue">Catalogue</a>
         <a href="#roadmap">Roadmap</a>
       </nav>
       <div class="header-actions">
-        <button class="icon-button" id="themeToggle" aria-label="Toggle theme">🌓</button>
-        <button class="button button-small" id="notifyBtnTop">Get early access</button>
-        <button class="menu-button" id="menuToggle" aria-label="Menu" aria-expanded="false">☰</button>
+        <button class="search-trigger" id="searchOpen" aria-label="Search the showcase">⌕ <span>Search</span></button>
+        <a class="header-cta" href="#waitlist">Get early access</a>
+        <button class="menu-trigger" id="menuOpen" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">☰</button>
       </div>
-      <nav class="mobile-nav" id="mobileNav">
-        <a href="#platform">Platform</a>
-        <a href="#experience">Experience</a>
-        <a href="#content">Content</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#roadmap">Roadmap</a>
-      </nav>
     </header>
 
-    <main id="main">
-      <!-- HERO / PLATFORM -->
-      <section class="hero" id="platform">
-        <div class="hero-glow hero-glow-one"></div>
-        <div class="hero-glow hero-glow-two"></div>
-        <div class="hero-grid"></div>
-        <div class="hero-content">
-          <span class="eyebrow"><span class="pulse"></span> LAUNCHING 1 JUNE 2027</span>
-          <h1>Your Stage.<br><span>Your Story.</span></h1>
-          <p>Africa's home of local entertainment. A mobile-first streaming platform built for the stories, voices, and creators that define the continent.</p>
-          <div class="hero-actions">
-            <button class="button button-primary" id="notifyBtnHero">Get early access</button>
-            <a class="button button-ghost" href="#experience">See the preview</a>
-          </div>
-          <div class="hero-facts">
-            <span><b>R29.90</b><small>Per month</small></span>
-            <span><b>Mobile-first</b><small>iOS &amp; Android</small></span>
-            <span><b>No hidden fees</b><small>Cancel anytime</small></span>
-          </div>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
+      <a href="#why">Why F.A.M.E</a>
+      <a href="#preview">Product preview</a>
+      <a href="#catalogue">Catalogue</a>
+      <a href="#roadmap">Roadmap</a>
+      <a class="mobile-cta" href="#waitlist">Get early access</a>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="hero-image" aria-hidden="true">
+          <img src="/assets/content/the-come-up.jpg" alt="">
         </div>
-        <div class="hero-device">
-          <div class="device-frame">
-            <div class="device-notch"></div>
-            <div class="device-screen">
-              <div class="screen-top"><span>F.A.M.E</span><span>•</span></div>
-              <div class="screen-hero">
-                <span class="screen-tag">FEATURED</span>
-                <strong>Your Stage.<br>Your Story.</strong>
-                <button class="play-mini">▶</button>
+        <div class="hero-scrim" aria-hidden="true"></div>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow"><span></span> A new African streaming platform · Target launch 2027</p>
+            <h1>There are stories<br><em>we know</em> you’ll want to watch.</h1>
+            <p class="hero-lead">F.A.M.E is being built for African audiences and the people making the stories. Films, series, music, documentaries and more — brought together in one place.</p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#preview">Explore the product <span>↗</span></a>
+              <a class="text-link" href="#waitlist">Join the early-access list</a>
+            </div>
+            <div class="hero-note"><strong>From R29.90/month*</strong><span>Mobile-first · simple pricing · built to grow</span></div>
+          </div>
+          <div class="hero-feature">
+            <div class="feature-frame">
+              <div class="feature-top"><span>F.A.M.E ORIGINAL</span><span>01 / 06</span></div>
+              <div class="feature-art" style="background-image:linear-gradient(180deg,transparent 42%,rgba(5,5,5,.94)),url('${art(featured)}')"></div>
+              <div class="feature-copy">
+                <span>Featured story</span>
+                <h2>${esc(featured.title)}</h2>
+                <p>${esc(featured.synopsis)}</p>
+                <button class="round-play" data-play="${featured.id}" aria-label="Play preview of ${esc(featured.title)}">▶</button>
               </div>
-              <div class="screen-row-title"><span>Trending now</span><span>See all</span></div>
-              <div class="mini-row"><i></i><i></i><i></i></div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- PLATFORM GRID -->
-      <div class="notice-strip">
-        <div>
-          <span class="notice-icon">!</span>
-          <p><b>Showcase only.</b> This site is a product preview. The production VOD platform launches in 2027.</p>
-        </div>
+      <div class="launch-note">
+        <span class="note-dot"></span>
+        <p><strong>What you’re seeing is the vision.</strong> This website is the showcase. The full VOD product — accounts, playback, subscriptions, apps and the production catalogue — comes next.</p>
+        <a href="#roadmap">See the roadmap →</a>
       </div>
 
-      <section class="section">
-        <div class="section-heading">
+      <section class="section editorial" id="why">
+        <div class="section-kicker">01 · The idea</div>
+        <div class="editorial-grid">
           <div>
-            <span class="kicker">The Platform</span>
-            <h2>Built for how Africa <span>watches.</span></h2>
+            <h2>A streaming service should feel like somewhere you <em>want</em> to spend time.</h2>
           </div>
-          <p>A mobile-first experience designed for the way audiences actually consume content — on phones, on the move, on their terms.</p>
+          <div class="editorial-copy">
+            <p>We’re not trying to build another generic catalogue with a logo on top. F.A.M.E is being shaped around discovery, local stories and the small details that make a streaming product feel personal.</p>
+            <p>Fast to open. Easy to browse. Good enough to recommend to someone else. That is the standard for the product we intend to build.</p>
+          </div>
         </div>
-        <div class="platform-grid">
-          <article class="feature-card feature-card-large">
-            <span class="feature-icon">▶</span>
-            <span class="card-label">STREAMING</span>
-            <h3>Cinematic playback</h3>
-            <p>Adaptive streaming that looks great on any connection, with DRM protection for every title.</p>
-            <span class="gradient-line"></span>
-          </article>
-          <article class="feature-card">
-            <span class="feature-icon">◎</span>
-            <span class="card-label">DISCOVERY</span>
-            <h3>Curated for you</h3>
-            <p>Editorial collections, trending rows, and personalised recommendations.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-icon">↓</span>
-            <span class="card-label">OFFLINE</span>
-            <h3>Watch anywhere</h3>
-            <p>Download and watch on the go without eating your data.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-icon">R</span>
-            <span class="card-label">PRICING</span>
-            <h3>Fair and simple</h3>
-            <p>One low monthly price. No hidden fees. Cancel anytime.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-icon">★</span>
-            <span class="card-label">CREATORS</span>
-            <h3>Made for local</h3>
-            <p>A platform built around African stories and the people who tell them.</p>
-          </article>
+        <div class="principles">
+          <article><span>01</span><h3>Local by design</h3><p>African stories should not feel like an afterthought in the catalogue.</p></article>
+          <article><span>02</span><h3>Simple to use</h3><p>Less hunting. Better discovery. A mobile experience that respects your thumb.</p></article>
+          <article><span>03</span><h3>Worth coming back to</h3><p>Fresh releases, smart collections and a product that grows with its audience.</p></article>
         </div>
       </section>
 
-      <!-- EXPERIENCE -->
-      <section class="section experience-section" id="experience">
+      <section class="section preview-section" id="preview">
+        <div class="section-kicker">02 · Product preview</div>
         <div class="section-heading">
-          <div>
-            <span class="kicker">The Experience</span>
-            <h2>A preview of <span>what's coming.</span></h2>
-          </div>
-          <p>A first look at the interface, the feel, and the way F.A.M.E will bring African entertainment to life.</p>
+          <h2>Don’t just read about it.<br><em>Have a look around.</em></h2>
+          <p>This is an interactive concept of the future F.A.M.E experience. Tap around, open a title, switch sections and see how the product is intended to feel.</p>
         </div>
-        <div class="experience-grid">
-          <div class="mock-browser">
-            <div class="browser-bar"><span></span><span></span><span></span><small>streamingonfame.co.za</small></div>
-            <div class="mock-home">
-              <div class="mock-nav">
-                <b>F.A.M.E</b>
-                <span>Home</span><span>Series</span><span>Films</span><span>Music</span>
-                <button>Sign up</button>
+        <div class="product-demo" id="productDemo">
+          <div class="demo-chrome">
+            <div class="demo-brand"><span>F</span><strong>F.A.M.E</strong><small>PRODUCT CONCEPT</small></div>
+            <div class="demo-profile"><span class="live-dot"></span> Preview mode <button id="demoSearch">⌕</button></div>
+          </div>
+          <div class="demo-hero" id="demoHero">
+            <div class="demo-hero-bg"></div>
+            <div class="demo-hero-content">
+              <span class="demo-label">F.A.M.E ORIGINAL · ${featured.year}</span>
+              <h3 id="demoHeroTitle">${esc(featured.title)}</h3>
+              <p id="demoHeroSynopsis">${esc(featured.synopsis)}</p>
+              <div class="demo-actions">
+                <button class="btn btn-light" id="demoPlay">▶ Play preview</button>
+                <button class="btn btn-dark" id="demoList">＋ My List</button>
               </div>
-              <div class="mock-hero">
-                <small>FEATURED ORIGINAL</small>
-                <h3>Your Stage.<br>Your Story.</h3>
-                <p>A new wave of African storytelling.</p>
-                <button>▶ Play trailer</button>
+            </div>
+          </div>
+          <div class="demo-tabs" role="tablist">
+            <button class="active" data-demo-tab="home" role="tab">Home</button>
+            <button data-demo-tab="originals" role="tab">Originals</button>
+            <button data-demo-tab="mylist" role="tab">My List</button>
+            <button data-demo-tab="profile" role="tab">Profile</button>
+          </div>
+          <div class="demo-body">
+            <div class="demo-heading"><div><span id="demoEyebrow">Continue watching</span><h4 id="demoRowTitle">Pick up where you left off.</h4></div><button id="demoSeeAll">See all</button></div>
+            <div class="demo-row" id="demoRow"></div>
+          </div>
+          <div class="demo-footer"><span>⌂ Home</span><span>⌕ Search</span><span>＋ My List</span><span>◉ Profile</span></div>
+        </div>
+        <p class="demo-disclaimer">Concept interface · imagery and titles shown for demonstration purposes · production availability may differ.</p>
+      </section>
+
+      <section class="section catalogue-section" id="catalogue">
+        <div class="section-kicker">03 · The catalogue</div>
+        <div class="section-heading split">
+          <div><h2>Stories with a<br><em>place of their own.</em></h2></div>
+          <p>These are concept titles created to show the direction of the catalogue. The real production slate will be announced as the platform develops.</p>
+        </div>
+        <div class="filter-bar" id="filters">
+          ${categories.map((c) => `<button class="${c.id === 'all' ? 'active' : ''}" data-filter="${c.id}">${esc(c.label)}</button>`).join('')}
+        </div>
+        <div class="catalogue-grid" id="catalogueGrid"></div>
+      </section>
+
+      <section class="section feature-section">
+        <div class="section-kicker">04 · The experience</div>
+        <div class="feature-story">
+          <div class="feature-story-copy">
+            <p class="overline">Made for real life</p>
+            <h2>Open it on a phone.<br><em>Keep watching on the TV.</em></h2>
+            <p>F.A.M.E is planned as a mobile-first product, with the wider screen experience growing from there. The goal is simple: your account, your list and your viewing should follow you.</p>
+            <div class="mini-stats"><div><strong>01</strong><span>Mobile-first</span></div><div><strong>02</strong><span>Offline viewing planned</span></div><div><strong>03</strong><span>Family profiles planned</span></div></div>
+          </div>
+          <div class="device-stack" aria-label="Concept views of the F.A.M.E product">
+            <div class="stack-card stack-back"><img src="/assets/content/city-lights.jpg" alt="" loading="lazy"></div>
+            <div class="stack-card stack-mid"><img src="/assets/content/rise.jpg" alt="" loading="lazy"></div>
+            <div class="stack-card stack-front">
+              <div class="stack-screen">
+                <div class="stack-nav"><b>F.A.M.E</b><span>⌕</span></div>
+                <img src="${art(featured)}" alt="${esc(featured.title)} concept screen" loading="lazy">
+                <div><small>CONTINUE WATCHING</small><strong>${esc(featured.title)}</strong><span>Episode 3 · 34 min left</span></div>
               </div>
-              <div class="mock-heading">Trending now <small>See all</small></div>
-              <div class="mock-posters"><i></i><i></i><i></i><i></i></div>
-            </div>
-          </div>
-          <div class="experience-copy">
-            <div class="experience-point">
-              <span>01</span>
-              <div><h3>Find your next favourite</h3><p>Curated rows, smart search, and recommendations that actually get you.</p></div>
-            </div>
-            <div class="experience-point">
-              <span>02</span>
-              <div><h3>Built around mobile</h3><p>Thumb-friendly navigation, fast playback, and offline viewing.</p></div>
-            </div>
-            <div class="experience-point">
-              <span>03</span>
-              <div><h3>Fair, transparent pricing</h3><p>From R29.90 per month. Cancel anytime. No hidden fees.</p></div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- CONTENT -->
-      <section class="section content-section" id="content">
-        <div class="section-heading">
+      <section class="section roadmap" id="roadmap">
+        <div class="section-kicker">05 · The road ahead</div>
+        <div class="section-heading split">
+          <div><h2>This website is <em>chapter one.</em></h2></div>
+          <p>The showcase exists to make the idea tangible. The application that powers it is a separate build and will be developed after this vision has been validated.</p>
+        </div>
+        <div class="roadmap-list">
+          <article class="roadmap-item current"><span>NOW</span><div><small>Showcase</small><h3>Make the vision real enough to touch</h3><p>Brand, product story, interactive concept, audience interest and early feedback.</p></div></article>
+          <article class="roadmap-item"><span>NEXT</span><div><small>Product build</small><h3>Build the actual F.A.M.E VOD platform</h3><p>Accounts, catalogue management, playback, subscriptions, payments, apps and the operational platform behind them.</p></div></article>
+          <article class="roadmap-item"><span>THEN</span><div><small>Launch</small><h3>Put great local stories in people’s hands</h3><p>Launch with a focused catalogue, measure what audiences love and keep improving the experience.</p></div></article>
+        </div>
+      </section>
+
+      <section class="section faq-section">
+        <div class="section-kicker">06 · Questions</div>
+        <div class="faq-layout">
+          <div><h2>Good questions.<br><em>We expect them.</em></h2><p>We’re deliberately clear about what exists today and what is planned.</p></div>
+          <div class="faq-list">
+            <details open><summary>Is this the actual streaming platform?</summary><p>No. This is the public showcase and product concept. The production VOD application will be a separate project.</p></details>
+            <details><summary>When is F.A.M.E expected to launch?</summary><p>The current target is 1 June 2027. That date is a target, not a promise, and will be updated as development progresses.</p></details>
+            <details><summary>What will the subscription cost?</summary><p>The current product direction starts from R29.90/month. Final plans and pricing will be confirmed closer to launch.</p></details>
+            <details><summary>What can I do today?</summary><p>Explore the concept, tell us you’re interested and join the early-access list so you can follow the journey.</p></details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section waitlist-section" id="waitlist">
+        <div class="waitlist-card">
           <div>
-            <span class="kicker">The Catalogue</span>
-            <h2>Stories that <span>move you.</span></h2>
+            <p class="overline">Get in early</p>
+            <h2>When F.A.M.E is ready,<br><em>you’ll know first.</em></h2>
+            <p>Leave your email and we’ll keep you close to the launch. No spam, no fake countdowns — just meaningful updates.</p>
           </div>
-          <p>A growing catalogue of original and licensed content across film, series, documentary, and music.</p>
-        </div>
-        <div class="category-tabs">
-          <button class="active" data-filter="all">All</button>
-          <button data-filter="film">Film</button>
-          <button data-filter="series">Series</button>
-          <button data-filter="music">Music</button>
-        </div>
-        <div class="content-grid">
-          <article class="content-card" data-category="film"><div class="poster poster-one"><span>ORIGINAL</span><strong>RISE</strong></div><div><b>Rise</b><small>Feature film · 2027</small></div></article>
-          <article class="content-card" data-category="series"><div class="poster poster-two"><span>SERIES</span><strong>THE BLOCK</strong></div><div><b>The Block</b><small>Drama series · 2027</small></div></article>
-          <article class="content-card" data-category="music"><div class="poster poster-three"><span>MUSIC</span><strong>THE COME UP</strong></div><div><b>The Come Up</b><small>Music documentary · 2027</small></div></article>
-          <article class="content-card" data-category="film"><div class="poster poster-four"><span>DOCUMENTARY</span><strong>ROOTS</strong></div><div><b>Roots</b><small>Documentary · 2027</small></div></article>
-          <article class="content-card" data-category="series"><div class="poster poster-five"><span>SERIES</span><strong>CITY LIGHTS</strong></div><div><b>City Lights</b><small>Drama series · 2027</small></div></article>
-          <article class="content-card" data-category="music"><div class="poster poster-six"><span>LIVE</span><strong>STAGE ONE</strong></div><div><b>Stage One</b><small>Live music · 2027</small></div></article>
-        </div>
-      </section>
-
-      <!-- FEATURES -->
-      <section class="section features-section">
-        <div class="section-heading centered">
-          <span class="kicker">Features</span>
-          <h2>Everything you need. <span>Nothing you don't.</span></h2>
-          <p>The essentials, done properly.</p>
-        </div>
-        <div class="feature-list">
-          <div><span>01</span><h3>Watch on any device</h3><p>Phone, tablet, laptop or TV.</p></div>
-          <div><span>02</span><h3>Download and go</h3><p>Save titles for offline viewing.</p></div>
-          <div><span>03</span><h3>No hidden fees</h3><p>One monthly price. Cancel anytime.</p></div>
-          <div><span>04</span><h3>Local first</h3><p>African stories, told by Africans.</p></div>
-          <div><span>05</span><h3>New every week</h3><p>Fresh titles added regularly.</p></div>
-          <div><span>06</span><h3>Safe for the family</h3><p>Profiles and parental controls.</p></div>
-        </div>
-      </section>
-
-      <!-- PRICING -->
-      <section class="section" id="pricing">
-        <div class="section-heading centered">
-          <span class="kicker">Pricing</span>
-          <h2>Simple, honest, <span>affordable.</span></h2>
-          <p>No contracts. No hidden costs. Just great African entertainment.</p>
-        </div>
-        <div class="plans-grid">
-          <article class="plan">
-            <span class="plan-badge">STANDARD</span>
-            <h3>Mobile</h3>
-            <div class="price"><sup>R</sup>29<span>.90</span><small>/month</small></div>
-            <p>Everything you need to start watching.</p>
-            <ul>
-              <li>1 screen at a time</li>
-              <li>SD streaming</li>
-              <li>Mobile and tablet</li>
-              <li>Cancel anytime</li>
-            </ul>
-            <button class="button button-ghost" id="notifyBtnPlan1">Get early access</button>
-          </article>
-          <article class="plan plan-featured">
-            <span class="plan-badge">PREMIUM</span>
-            <h3>Family</h3>
-            <div class="price"><sup>R</sup>59<span>.90</span><small>/month</small></div>
-            <p>For everyone in the house.</p>
-            <ul>
-              <li>4 screens at a time</li>
-              <li>HD streaming</li>
-              <li>Phone, tablet, laptop, TV</li>
-              <li>Downloads</li>
-              <li>Cancel anytime</li>
-            </ul>
-            <button class="button button-primary" id="notifyBtnPlan2">Get early access</button>
-          </article>
-        </div>
-      </section>
-
-      <!-- ROADMAP -->
-      <section class="section roadmap-section" id="roadmap">
-        <div class="section-heading centered">
-          <span class="kicker">Roadmap</span>
-          <h2>Where we're <span>heading.</span></h2>
-        </div>
-        <div class="timeline">
-          <div class="timeline-item active"><span>01</span><div><small>2026</small><h3>Foundation</h3><p>Platform architecture, partnerships, and content pipeline.</p></div></div>
-          <div class="timeline-item"><span>02</span><div><small>2027</small><h3>Launch</h3><p>Mobile web, Android, and iOS launch on 1 June 2027.</p></div></div>
-          <div class="timeline-item"><span>03</span><div><small>2027–2028</small><h3>Expand</h3><p>Smart TV, desktop, and new content verticals.</p></div></div>
-          <div class="timeline-item"><span>04</span><div><small>2028+</small><h3>Grow</h3><p>Original productions and creator tools.</p></div></div>
-        </div>
-      </section>
-
-      <!-- FAQ -->
-      <section class="section" id="faq">
-        <div class="section-heading centered">
-          <span class="kicker">FAQ</span>
-          <h2>Questions, <span>answered.</span></h2>
-        </div>
-        <div class="faq-list">
-          <details><summary>When does F.A.M.E launch?</summary><p>We're targeting 1 June 2027 for the public launch.</p></details>
-          <details><summary>How much will it cost?</summary><p>From R29.90 per month. No hidden fees. Cancel anytime.</p></details>
-          <details><summary>What devices will be supported?</summary><p>Mobile web, Android and iOS at launch. Smart TV and desktop will follow.</p></details>
-          <details><summary>How can I get early access?</summary><p>Sign up on our waitlist and we'll let you know when we're ready.</p></details>
-        </div>
-      </section>
-
-      <!-- NOTIFY -->
-      <section class="section" id="notify">
-        <div class="notify-card">
-          <div>
-            <span class="kicker">Early access</span>
-            <h2>Be first <span>on stage.</span></h2>
-            <p>Join the waitlist and we'll let you know the moment F.A.M.E is ready.</p>
-          </div>
-          <form class="notify-form" id="notifyForm" novalidate>
-            <label><span>Your email</span><input type="email" id="email" required placeholder="you@example.com" /></label>
-            <button class="button button-primary" type="submit">Notify me</button>
-            <small id="formMessage">We'll never share your email.</small>
+          <form id="waitlistForm">
+            <label for="email">Email address</label>
+            <div class="form-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required><button class="btn btn-primary" type="submit">Keep me posted</button></div>
+            <label class="consent"><input type="checkbox" id="consent" required><span>I agree to receive F.A.M.E product and launch updates.</span></label>
+            <p class="form-status" id="formStatus" role="status">* Pricing and launch timing are current targets and may change.</p>
           </form>
         </div>
       </section>
@@ -298,124 +244,261 @@ app.innerHTML = `
 
     <footer class="footer">
       <div class="footer-main">
-        <div class="footer-brand">
-          <a class="brand" href="#main">
-            <span class="brand-mark"><span>S</span></span>
-            <span class="brand-copy">
-              <strong>STREAMING ON</strong>
-              <b>F.A.M.E</b>
-              <small>YOUR STAGE. YOUR STORY.</small>
-            </span>
-          </a>
-          <p style="margin-top:14px;color:var(--muted);font-size:11px;line-height:1.7;">Africa's home of local entertainment. A product showcase.</p>
-        </div>
-        <div><h4>Product</h4><a href="#platform">Platform</a><a href="#experience">Experience</a><a href="#content">Content</a></div>
-        <div><h4>Company</h4><a href="#roadmap">Roadmap</a><a href="#faq">FAQ</a><a href="/press.html">Press</a></div>
-        <div><h4>Contact</h4><a href="mailto:hello@streamingonfame.co.za">hello@streamingonfame.co.za</a></div>
+        <div class="footer-brand"><img src="/assets/brand/fame-logo.webp" alt="Streaming on F.A.M.E"><p>Your Stage. Your Story.</p><small>A product showcase for the future F.A.M.E VOD platform.</small></div>
+        <div><h4>Explore</h4><a href="#why">Why F.A.M.E</a><a href="#preview">Product preview</a><a href="#catalogue">Catalogue</a></div>
+        <div><h4>Company</h4><a href="#roadmap">Roadmap</a><a href="/press.html">Press</a><a href="mailto:hello@streamingonfame.co.za">Contact</a></div>
+        <div><h4>Stay close</h4><p>Follow the build as the showcase becomes the product.</p><a class="footer-email" href="#waitlist">Join early access →</a></div>
       </div>
-      <div class="footer-bottom">
-        <span>© <span id="year"></span> Streaming on F.A.M.E</span>
-        <span>www.streamingonfame.co.za</span>
-      </div>
+      <div class="footer-bottom"><span>© ${new Date().getFullYear()} Streaming on F.A.M.E</span><span>Concept showcase · Not the production VOD application</span><a href="#top">Back to top ↑</a></div>
     </footer>
 
-    <div class="toast" id="toast"></div>
-  </div>
-`;
+    <div class="modal" id="modal" aria-hidden="true"></div>
+    <div class="search-drawer" id="searchDrawer" aria-hidden="true">
+      <div class="search-card">
+        <button class="modal-close" id="searchClose" aria-label="Close search">×</button>
+        <p class="overline">F.A.M.E catalogue</p>
+        <h2>What do you feel like watching?</h2>
+        <div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Try “drama”, “music”, “originals”…" autocomplete="off"></div>
+        <div id="searchResults"></div>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </div>`;
 
-// ============================================================================
-// INTERACTIVITY (adapted from your original app.js)
-// ============================================================================
+const catalogueGrid = document.querySelector('#catalogueGrid')!;
+let activeFilter = 'all';
+let myList = new Set<string>();
 
-// Year
-const yearEl = document.getElementById('year');
-if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+function renderCatalogue() {
+  const items = catalogue.filter((item) => activeFilter === 'all' || item.tags.includes(activeFilter));
+  catalogueGrid.innerHTML = items.map(card).join('');
+  bindTitleActions(catalogueGrid);
+}
 
-// Theme toggle
-const body = document.body;
-const themeToggle = document.getElementById('themeToggle');
-const savedTheme = localStorage.getItem('fame-theme');
-if (savedTheme === 'light') body.classList.add('light');
-themeToggle?.addEventListener('click', () => {
-  body.classList.toggle('light');
-  localStorage.setItem('fame-theme', body.classList.contains('light') ? 'light' : 'dark');
-});
-
-// Mobile menu
-const menuToggle = document.getElementById('menuToggle');
-const mobileNav = document.getElementById('mobileNav');
-menuToggle?.addEventListener('click', () => {
-  const open = mobileNav?.classList.toggle('open') ?? false;
-  menuToggle.setAttribute('aria-expanded', String(open));
-});
-mobileNav?.querySelectorAll('a').forEach((a) =>
-  a.addEventListener('click', () => {
-    mobileNav.classList.remove('open');
-    menuToggle?.setAttribute('aria-expanded', 'false');
-  })
-);
-
-// Category tab filtering
-document.querySelectorAll('.category-tabs button').forEach((button) => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.category-tabs button').forEach((b) => b.classList.remove('active'));
-    button.classList.add('active');
-    const filter = (button as HTMLElement).dataset.filter;
-    document.querySelectorAll('.content-card').forEach((card) => {
-      const cat = (card as HTMLElement).dataset.category;
-      card.classList.toggle('hidden', filter !== 'all' && cat !== filter);
+function bindTitleActions(scope: ParentNode = document) {
+  scope.querySelectorAll<HTMLElement>('[data-title]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = catalogue.find((x) => x.id === button.dataset.title);
+      if (item) openTitle(item);
     });
+  });
+  scope.querySelectorAll<HTMLElement>('[data-list]').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const id = button.dataset.list!;
+      if (myList.has(id)) {
+        myList.delete(id);
+        button.textContent = '+';
+        button.classList.remove('saved');
+        track('my_list_removed', { title: id });
+      } else {
+        myList.add(id);
+        button.textContent = '✓';
+        button.classList.add('saved');
+        track('my_list_added', { title: id });
+      }
+    });
+  });
+}
+
+function openTitle(item: Title) {
+  const modal = document.querySelector<HTMLDivElement>('#modal')!;
+  modal.innerHTML = `
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="titleHeading">
+      <button class="modal-close" data-close aria-label="Close">×</button>
+      <div class="detail-grid">
+        <img class="detail-art" src="${art(item)}" alt="${esc(item.title)} concept artwork">
+        <div class="detail-copy">
+          <p class="overline">${esc(item.kind)} · ${item.year}</p>
+          <h2 id="titleHeading">${esc(item.title)}</h2>
+          <p class="detail-meta">${esc(item.rating)} · ${esc(item.duration)} · ${esc(item.genre)}</p>
+          <p>${esc(item.synopsis)}</p>
+          <div class="detail-actions"><button class="btn btn-primary" data-modal-play>▶ Play concept preview</button><button class="btn btn-outline" data-modal-list>${myList.has(item.id) ? '✓ In My List' : '＋ My List'}</button></div>
+          <small>Concept title · not available to stream today.</small>
+        </div>
+      </div>
+    </div>`;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  track('title_opened', { title: item.title, kind: item.kind });
+  modal.querySelector('[data-close]')?.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); }, { once: true });
+  modal.querySelector('[data-modal-play]')?.addEventListener('click', () => openPlayer(item));
+  modal.querySelector('[data-modal-list]')?.addEventListener('click', () => {
+    myList.has(item.id) ? myList.delete(item.id) : myList.add(item.id);
+    openTitle(item);
+  });
+}
+
+function closeModal() {
+  const modal = document.querySelector<HTMLDivElement>('#modal')!;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+
+function openPlayer(item: Title) {
+  const modal = document.querySelector<HTMLDivElement>('#modal')!;
+  modal.innerHTML = `
+    <div class="player-card" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close aria-label="Close">×</button>
+      <div class="player">
+        <img src="${art(item)}" alt="">
+        <div class="player-shade"></div>
+        <div class="player-message"><button class="play-large">▶</button><span>Concept preview</span><strong>${esc(item.title)}</strong><small>There is no production stream here yet. This is the experience we’re building towards.</small></div>
+        <div class="fake-controls"><span>0:00</span><i><b></b></i><span>1:12</span><span>⚙</span><span>⛶</span></div>
+      </div>
+    </div>`;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  modal.querySelector('[data-close]')?.addEventListener('click', closeModal);
+  modal.querySelector('.play-large')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    btn.textContent = btn.textContent === '▶' ? '❚❚' : '▶';
+    track('concept_player_used', { title: item.title });
+  });
+  track('concept_preview_started', { title: item.title });
+}
+
+const demoRows: Record<string, string[]> = {
+  home: ['city-of-dreams','after-the-rain','roots-and-rhythm','future-africa'],
+  originals: ['roots-and-rhythm','voices-of-home','makers-of-tomorrow','future-africa'],
+  mylist: ['the-next-move','village-to-vision','midnight-radio'],
+  profile: ['little-legends','makers-of-tomorrow','voices-of-home'],
+};
+
+function renderDemo(tab = 'home') {
+  const row = document.querySelector('#demoRow')!;
+  const ids = demoRows[tab] ?? demoRows.home;
+  row.innerHTML = ids.map((id) => {
+    const item = catalogue.find((x) => x.id === id)!;
+    return `<button class="demo-card" data-demo-title="${id}"><img src="${art(item)}" alt="${esc(item.title)}"><span>${esc(item.title)}</span><small>${item.kind} · ${item.year}</small></button>`;
+  }).join('');
+  const eyebrow = document.querySelector('#demoEyebrow')!;
+  const title = document.querySelector('#demoRowTitle')!;
+  const labels: Record<string,[string,string]> = {
+    home: ['Continue watching','Pick up where you left off.'],
+    originals: ['African Originals','Stories made close to home.'],
+    mylist: ['My List','The things you said you wanted to watch.'],
+    profile: ['Family Profiles','A space for everyone.'],
+  };
+  eyebrow.textContent = labels[tab]?.[0] ?? labels.home[0];
+  title.textContent = labels[tab]?.[1] ?? labels.home[1];
+  row.querySelectorAll<HTMLElement>('[data-demo-title]').forEach((el) => el.addEventListener('click', () => {
+    const item = catalogue.find((x) => x.id === el.dataset.demoTitle);
+    if (item) openTitle(item);
+  }));
+}
+
+document.querySelectorAll<HTMLElement>('[data-demo-tab]').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('[data-demo-tab]').forEach((b) => b.classList.remove('active'));
+    button.classList.add('active');
+    renderDemo(button.dataset.demoTab!);
+    track('product_preview_tab', { tab: button.dataset.demoTab! });
   });
 });
 
-// Notify form
-const form = document.getElementById('notifyForm') as HTMLFormElement | null;
-const message = document.getElementById('formMessage');
-const toast = document.getElementById('toast');
-form?.addEventListener('submit', (event) => {
+document.querySelector('#demoPlay')?.addEventListener('click', () => openPlayer(featured));
+document.querySelector('[data-play]')?.addEventListener('click', () => openPlayer(featured));
+document.querySelector('#demoList')?.addEventListener('click', () => {
+  myList.has(featured.id) ? myList.delete(featured.id) : myList.add(featured.id);
+  const button = document.querySelector<HTMLButtonElement>('#demoList');
+  if (button) button.textContent = myList.has(featured.id) ? '✓ In My List' : '＋ My List';
+  track('product_preview_list', { title: featured.title, saved: myList.has(featured.id) });
+});
+
+document.querySelector('#demoSeeAll')?.addEventListener('click', () => {
+  document.querySelector('#catalogue')?.scrollIntoView({ behavior: 'smooth' });
+  track('catalogue_cta', { source: 'product_preview' });
+});
+
+document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('[data-filter]').forEach((b) => b.classList.remove('active'));
+    button.classList.add('active');
+    activeFilter = button.dataset.filter ?? 'all';
+    renderCatalogue();
+    track('catalogue_filter', { filter: activeFilter });
+  });
+});
+
+const searchDrawer = document.querySelector<HTMLDivElement>('#searchDrawer')!;
+const searchInput = document.querySelector<HTMLInputElement>('#searchInput')!;
+function renderSearchResults(query = '') {
+  const target = document.querySelector<HTMLDivElement>('#searchResults')!;
+  const q = query.trim().toLowerCase();
+  const results = catalogue.filter((item) => !q || [item.title,item.kind,item.genre,...item.tags].join(' ').toLowerCase().includes(q)).slice(0,7);
+  target.innerHTML = results.length ? `<div class="search-results">${results.map((item) => `<button class="search-result" data-search-title="${item.id}"><img src="${art(item)}" alt=""><span><b>${esc(item.title)}</b><small>${esc(item.kind)} · ${esc(item.genre)}</small></span><em>View</em></button>`).join('')}</div>` : `<p class="empty-search">Nothing found. Try a genre, format or “originals”.</p>`;
+  target.querySelectorAll<HTMLElement>('[data-search-title]').forEach((el) => el.addEventListener('click', () => {
+    const item = catalogue.find((x) => x.id === el.dataset.searchTitle);
+    if (item) { searchDrawer.classList.remove('open'); searchDrawer.setAttribute('aria-hidden','true'); openTitle(item); }
+  }));
+}
+function openSearch() {
+  searchDrawer.classList.add('open'); searchDrawer.setAttribute('aria-hidden','false'); searchInput.value=''; renderSearchResults(); setTimeout(()=>searchInput.focus(),50);
+  track('search_opened');
+}
+document.querySelector('#searchOpen')?.addEventListener('click', openSearch);
+document.querySelector('#demoSearch')?.addEventListener('click', openSearch);
+document.querySelector('#searchClose')?.addEventListener('click', () => { searchDrawer.classList.remove('open'); searchDrawer.setAttribute('aria-hidden','true'); });
+searchInput.addEventListener('input', () => renderSearchResults(searchInput.value));
+searchDrawer.addEventListener('click', (e) => { if (e.target === searchDrawer) { searchDrawer.classList.remove('open'); searchDrawer.setAttribute('aria-hidden','true'); } });
+
+const menu = document.querySelector('#mobileNav')!;
+document.querySelector('#menuOpen')?.addEventListener('click', () => {
+  const button = document.querySelector<HTMLButtonElement>('#menuOpen')!;
+  const open = menu.classList.toggle('open');
+  button.setAttribute('aria-expanded', String(open));
+});
+menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
+  menu.classList.remove('open');
+  document.querySelector('#menuOpen')?.setAttribute('aria-expanded','false');
+}));
+
+const waitlist = document.querySelector<HTMLFormElement>('#waitlistForm')!;
+waitlist.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const input = document.getElementById('email') as HTMLInputElement | null;
-  if (!input || !input.value || !input.checkValidity()) {
-    if (message) {
-      message.textContent = 'Please enter a valid email address.';
-      (message as HTMLElement).style.color = '#ff6b91';
-    }
-    input?.focus();
+  const email = document.querySelector<HTMLInputElement>('#email')!;
+  const consent = document.querySelector<HTMLInputElement>('#consent')!;
+  const status = document.querySelector<HTMLParagraphElement>('#formStatus')!;
+  if (!email.checkValidity() || !consent.checked) {
+    status.textContent = 'Please enter a valid email address and confirm the update consent.';
+    status.className = 'form-status error';
     return;
   }
-  if (message) {
-    message.textContent = 'Thanks — your interest has been captured for this demo.';
-    (message as HTMLElement).style.color = '#f06ab0';
+  const endpoint = import.meta.env.VITE_WAITLIST_ENDPOINT as string | undefined;
+  if (!endpoint) {
+    status.textContent = 'Demo mode: no registration was sent. Connect VITE_WAITLIST_ENDPOINT to capture real sign-ups.';
+    status.className = 'form-status';
+    track('waitlist_demo_submit');
+    return;
   }
-  if (toast) {
-    toast.textContent = 'F.A.M.E showcase signup complete';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2600);
+  status.textContent = 'Sending…';
+  status.className = 'form-status';
+  try {
+    const response = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:email.value, source:'fame-showcase', consent:true}) });
+    if (!response.ok) throw new Error('Waitlist request failed');
+    status.textContent = 'You’re on the list. We’ll keep you posted.';
+    status.className = 'form-status success';
+    waitlist.reset();
+    track('waitlist_signup', { source:'website' });
+  } catch {
+    status.textContent = 'We couldn’t save that just now. Please try again in a moment.';
+    status.className = 'form-status error';
   }
-  input.value = '';
 });
 
-// Scroll-jump links (nav + notify buttons)
-const notifyIds = ['notifyBtnTop', 'notifyBtnHero', 'notifyBtnPlan1', 'notifyBtnPlan2'];
-notifyIds.forEach((id) => {
-  document.getElementById(id)?.addEventListener('click', () => {
-    document.getElementById('notify')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => (document.getElementById('email') as HTMLInputElement | null)?.focus(), 500);
-  });
+document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
+  link.addEventListener('click', () => track('navigation_click', { target: link.getAttribute('href') ?? '' }));
 });
 
-// Active nav highlighting
-const sections = Array.from(document.querySelectorAll('main section[id]'));
-const navLinks = Array.from(document.querySelectorAll('.desktop-nav a'));
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      navLinks.forEach((link) =>
-        link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id)
-      );
-    });
-  },
-  { rootMargin: '-35% 0px -55% 0px', threshold: 0 }
-);
-sections.forEach((section) => observer.observe(section));
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') { closeModal(); searchDrawer.classList.remove('open'); searchDrawer.setAttribute('aria-hidden','true'); }
+});
+
+renderCatalogue();
+renderDemo();
+initAnalytics();

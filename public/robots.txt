@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://www.streamingonfame.co.za/sitemap.xml
+
+Sitemap: https://ta-mosss.github.io/Streaming-on-F.A.M.E/sitemap.xml

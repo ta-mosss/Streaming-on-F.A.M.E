@@ -1,154 +1,193 @@
-# Streaming on F.A.M.E — Showcase Website
+# Streaming on F.A.M.E — Showcase
 
 **Your Stage. Your Story.**
 
-This repository is the **public-facing marketing and product showcase website** for Streaming on F.A.M.E.
+This repository is the **public-facing website for the F.A.M.E vision**. It is intentionally separate from the future production VOD application.
 
-> **Important boundary:** this is NOT the production VOD platform. Authentication, subscriptions, payments, DRM, video delivery, CMS, customer accounts and production playback belong to the future F.A.M.E VOD project and should not be implemented in this repository.
+The job of this site is to make a visitor think:
 
-## Product direction
+> **“Damn. I want to use this platform.”**
 
-The supplied F.A.M.E design brief defines a mobile-first African entertainment vision, with mobile web/PWA and Android prioritised for the MVP, followed by iOS, desktop/Smart TV and later growth capabilities.
+Then the future `fame-vod-platform` project makes that statement true.
 
-This website communicates that vision through:
+## What this iteration focuses on
 
-- premium cinematic brand experience
-- interactive VOD product preview
-- concept content catalogue and artwork system
-- title detail and simulated trailer interactions
-- showcase pricing direction
-- early-access/waitlist capture
-- SEO and social metadata
-- accessibility and reduced-motion support
-- privacy-friendly analytics hooks
-- GitHub Actions CI/CD
-- production and staging build workflows
+- Human, editorial product design rather than a generic AI landing-page aesthetic.
+- Real-looking local catalogue imagery using the site's existing visual assets.
+- Interactive product concept: tabs, catalogue, search, title details, My List and concept player.
+- Mobile-first UX with a compact navigation and app-like product preview.
+- Clear separation between the showcase and the future production VOD system.
+- Honest launch/pricing language: targets are presented as targets, not facts.
+- SEO-ready metadata, canonical URL, Open Graph/Twitter cards, sitemap and structured data.
+- Privacy-friendly analytics hooks with Plausible support.
+- Production build with TypeScript checking and Vite.
+- GitHub Actions CI/CD: pull requests and `develop` validate the build; `main` deploys to GitHub Pages.
+- Content-driven catalogue data so new concept titles do not require rewriting page markup.
 
-## Stack
+## Repository architecture
 
-- Vite
-- TypeScript
-- Native Web Components (no framework lock-in)
-- CSS design system
-- SVG/WebP/PNG local artwork
-- GitHub Actions
+```text
+Streaming-on-F.A.M.E/
+├── public/
+│   ├── assets/
+│   │   ├── brand/
+│   │   └── content/
+│   ├── manifest.webmanifest
+│   ├── robots.txt
+│   ├── sitemap.xml
+│   └── CNAME
+├── src/
+│   ├── data/
+│   │   └── catalogue.ts
+│   ├── styles/
+│   │   └── main.css
+│   ├── analytics.ts
+│   ├── env.d.ts
+│   └── main.ts
+├── design-source/
+├── .github/workflows/
+│   └── deploy.yml
+├── index.html
+├── press.html
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── vite.config.ts
+```
 
-## Run locally
+### Boundaries
+
+This repo should **not** become the VOD backend.
+
+The future production application can live in a separate repository, for example:
+
+```text
+fame-vod-platform/
+```
+
+That application can own:
+
+- customer authentication and profiles
+- subscriptions and payments
+- production video playback
+- CDN and adaptive streaming
+- DRM
+- catalogue/CMS
+- content ingestion and transcoding
+- mobile applications
+- Smart TV applications
+- admin/operations
+- creator tooling
+- production observability and infrastructure
+
+## Local development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Production build:
+Production validation:
 
 ```bash
+npm run typecheck
 npm run build
 npm run preview
 ```
 
-## Waitlist integration
+## Waitlist
 
-The form is intentionally **not fake**. If `VITE_WAITLIST_ENDPOINT` is not configured, the site tells the user that no registration was submitted.
+The waitlist is deliberately honest.
 
-Copy `.env.example` to `.env.local` and configure a real endpoint:
+Without `VITE_WAITLIST_ENDPOINT`, the form stays in **demo mode** and does not pretend to have saved an email.
 
-```text
+For a real endpoint:
+
+```bash
 VITE_WAITLIST_ENDPOINT=https://your-api.example/waitlist
 ```
 
-The endpoint should accept JSON like:
+The endpoint receives:
 
 ```json
 {
   "email": "person@example.com",
-  "source": "website",
+  "source": "fame-showcase",
   "consent": true
 }
 ```
 
-For production, store the endpoint as a GitHub Actions secret named `VITE_WAITLIST_ENDPOINT`.
+For GitHub Actions, store the endpoint as the repository secret `VITE_WAITLIST_ENDPOINT`.
 
 ## Analytics
 
-Analytics are opt-in and designed around privacy-friendly, cookieless providers. Configure:
+Set:
 
 ```text
 VITE_PLAUSIBLE_DOMAIN=streamingonfame.co.za
 ```
 
-The app also emits `fame:analytics` browser events so a future analytics adapter can be added without changing product components.
-
-## Git workflow
-
-Recommended:
+Optionally set:
 
 ```text
-main       → production
-   ↑
-develop    → staging / integration
-   ↑
-feature/*  → individual changes
+VITE_PLAUSIBLE_SCRIPT=https://plausible.io/js/script.js
 ```
 
-Pull requests should pass the CI build before merging.
+The application also emits `fame:analytics` browser events, keeping analytics concerns decoupled from the product UI.
 
-### Production
+Important product events include:
 
-Push to `main` to run the production build/deploy workflow. The workflow is configured for GitHub Pages and includes `public/CNAME` for `www.streamingonfame.co.za`. If the repository is hosted elsewhere, keep the CI workflow and replace only the deployment job.
+- `search_opened`
+- `product_preview_tab`
+- `title_opened`
+- `concept_preview_started`
+- `concept_player_used`
+- `my_list_added`
+- `my_list_removed`
+- `catalogue_filter`
+- `waitlist_signup`
 
-### Staging
+## GitHub flow
 
-Push to `develop` to create a staging build artifact. This intentionally avoids silently publishing to production.
+```text
+feature/* → develop → main
+              ↓        ↓
+           CI/build   CI/build + production deploy
+```
 
-## Content system
+Pull requests into `main` must pass typecheck and production build.
 
-Concept titles live in:
+`develop` validates the staging/integration branch without publishing production.
+
+`main` deploys the build artifact to GitHub Pages.
+
+## Content
+
+Concept titles are defined in:
 
 ```text
 src/data/catalogue.ts
 ```
 
-Artwork lives in:
+The website uses local assets from:
 
 ```text
 public/assets/content/
 ```
 
-Adding a title is therefore a data/content change rather than an HTML rewrite.
+This keeps content changes separate from the presentation layer.
 
-## Brand assets
+## Product truth
 
-```text
-public/assets/brand/fame-logo.png
-public/assets/brand/fame-logo.webp
-design-source/fame-logo-original.png
-public/og-image.svg
-```
+This website is a **showcase**.
 
-The optimised WebP is used by the site. The PNG is retained for press/download use.
+It does not claim that:
 
-## Repository boundary
+- accounts already exist
+- subscriptions are live
+- the shown catalogue is available to stream
+- the concept player is delivering production video
+- the target launch date is guaranteed
+- the displayed pricing is final
 
-When the production VOD project begins, create a separate repository, for example:
-
-```text
-fame-vod-platform
-```
-
-That project can then own:
-
-- customer authentication
-- profiles
-- catalogue CMS
-- video ingestion/transcoding
-- CDN
-- DRM
-- subscriptions/payments
-- production player
-- mobile apps
-- admin/operations
-- infrastructure-as-code
-- observability
-
-Do not couple those production concerns into this showcase repository.
+That distinction matters because the website is selling the **vision**, while the future VOD application will deliver the product.

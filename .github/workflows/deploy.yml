@@ -1,7 +1,9 @@
-name: Deploy F.A.M.E Showcase
+name: F.A.M.E Showcase CI/CD
 
 on:
   push:
+    branches: [main, develop]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -11,40 +13,66 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: fame-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  quality:
+    name: Typecheck + production build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - name: Install dependencies
-        run: npm install
-      - name: Build production site
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
         run: npm run build
         env:
           VITE_WAITLIST_ENDPOINT: ${{ secrets.VITE_WAITLIST_ENDPOINT }}
           VITE_PLAUSIBLE_DOMAIN: ${{ vars.VITE_PLAUSIBLE_DOMAIN }}
+          VITE_PLAUSIBLE_SCRIPT: ${{ vars.VITE_PLAUSIBLE_SCRIPT }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fame-showcase-dist
+          path: dist
+          retention-days: 14
+
+  deploy:
+    name: Deploy production
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Configure Pages
         uses: actions/configure-pages@v5
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fame-showcase-dist
+          path: dist
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
