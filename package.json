@@ -1,13 +1,14 @@
 {
   "name": "streaming-on-fame-showcase",
   "private": true,
-  "version": "4.0.0",
+  "version": "5.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "art": "node scripts/generate-art.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
