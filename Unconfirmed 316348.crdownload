@@ -1,0 +1,357 @@
+/* =========================================================
+   Streaming on F.A.M.E — Marketing Site Interactions
+   ========================================================= */
+
+/* ---------- CATALOGUE PREVIEW DATA ---------- */
+const CATALOGUE = [
+  {title:'Black Power: The Rise',  cat:'originals series', tag:'FAME ORIGINAL', meta:'Drama · 16+',       art:['#E5007E','#4A0E7A']},
+  {title:'eMalahleni Nights',      cat:'originals movies', tag:'FAME ORIGINAL', meta:'Thriller · 16+',    art:['#0F2027','#E5007E']},
+  {title:'The Hustle Squad',       cat:'originals reality',tag:'FAME ORIGINAL', meta:'Reality · 13+',     art:['#FF8008','#4A0E7A']},
+  {title:'Kasi Kings',             cat:'reality series',   tag:'',              meta:'Reality · PG',      art:['#F7971E','#FFD200']},
+  {title:'Ubuntu Rising',          cat:'originals docs',   tag:'FAME ORIGINAL', meta:'Documentary · PG13',art:['#134E5E','#71B280']},
+  {title:'Joburg 2040',            cat:'originals series', tag:'FAME ORIGINAL', meta:'Sci-Fi · 16+',      art:['#1F1C2C','#E5007E']},
+  {title:'Soweto Beat',            cat:'movies',           tag:'',              meta:'Music · PG',        art:['#8E2DE2','#E5007E']},
+  {title:'Little Legends',         cat:'kids',             tag:'FAME KIDS',     meta:'Animation · ALL',   art:['#00B4DB','#0083B0']},
+  {title:'Mama\'s Kitchen',        cat:'reality',          tag:'',              meta:'Food · PG',         art:['#F2994A','#8E0E00']},
+  {title:'Taxi Wars',              cat:'originals series', tag:'FAME ORIGINAL', meta:'Action Comedy · 16+',art:['#FC466B','#3F5EFB']},
+  {title:'The Last Mine',          cat:'movies',           tag:'',              meta:'Drama · 16+',       art:['#232526','#414345']},
+  {title:'FAME Live: Awards 2026', cat:'live',             tag:'LIVE',          meta:'Live Event · PG',   art:['#E5007E','#FFB800']},
+  {title:'Young Hustlers Academy', cat:'originals learning',tag:'FAME ORIGINAL',meta:'Business · PG',     art:['#11998E','#38EF7D']},
+  {title:'Sibongile\'s Choice',    cat:'series',           tag:'',              meta:'Telenovela · 13+',  art:['#C33764','#1D2671']},
+  {title:'Pan African Voices',     cat:'docs',             tag:'',              meta:'Documentary · PG13',art:['#3A1C71','#D76D77']},
+  {title:'Groove Nation',          cat:'movies',           tag:'',              meta:'Music · PG',        art:['#F953C6','#B91D73']},
+  {title:'Short Cuts Vol. 1',      cat:'originals',        tag:'FAME ORIGINAL', meta:'Anthology · 16+',   art:['#654EA3','#EAAFC8']},
+  {title:'The Startup Diaries',    cat:'learning',         tag:'',              meta:'Business · PG',     art:['#00C9FF','#92FE9D']},
+  {title:'Night Drive',            cat:'originals movies', tag:'FAME ORIGINAL', meta:'Thriller · 16+',    art:['#0F0C29','#E5007E']},
+  {title:'Amakhosi: The Story',    cat:'docs',             tag:'',              meta:'Sport · PG',        art:['#B79891','#94716B']},
+  {title:'Jungle Jamboree',        cat:'kids',             tag:'FAME KIDS',     meta:'Animation · ALL',   art:['#43C6AC','#191654']},
+  {title:'Super Sipho',            cat:'kids',             tag:'FAME KIDS',     meta:'Animation · ALL',   art:['#FF512F','#DD2476']},
+  {title:'Story Time with Gogo',   cat:'kids learning',    tag:'FAME KIDS',     meta:'Educational · ALL', art:['#FDC830','#F37335']},
+  {title:'Home Grown Cooking',     cat:'reality',          tag:'',              meta:'Food · PG',         art:['#F09819','#EDDE5D']}
+];
+
+/* ---------- DOM ---------- */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+/* ---------- STATE ---------- */
+const state = {
+  category: 'all',
+  theme: localStorage.getItem('fame-theme') || 'dark'
+};
+
+/* =========================================================
+   THEME
+   ========================================================= */
+function applyTheme(t){
+  document.documentElement.classList.toggle('light', t === 'light');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t === 'light' ? '#FFFFFF' : '#0D0D0D');
+  localStorage.setItem('fame-theme', t);
+  state.theme = t;
+}
+applyTheme(state.theme);
+
+$('#themeBtn').addEventListener('click', () => {
+  applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+  toast(state.theme === 'light' ? 'Light mode on' : 'Dark mode on');
+});
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+let toastTimer;
+function toast(msg){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('on'), 2600);
+}
+
+/* =========================================================
+   RENDER POSTER GRID
+   ========================================================= */
+function posterCard(item){
+  return `
+    <article class="poster-card" data-title="${item.title}">
+      <div class="art" style="background:linear-gradient(135deg,${item.art[0]},${item.art[1]})">
+        ${item.tag ? `<span class="tag">${item.tag}</span>` : ''}
+        <span class="ttl">${item.title}</span>
+      </div>
+      <div class="meta">
+        <b>${item.title}</b>
+        <span>${item.meta}</span>
+      </div>
+    </article>`;
+}
+
+function renderPosters(){
+  const grid = $('#posterGrid');
+  const cat = state.category;
+  const items = cat === 'all'
+    ? CATALOGUE
+    : CATALOGUE.filter(i => i.cat.split(' ').includes(cat));
+
+  grid.innerHTML = items.map(posterCard).join('');
+
+  $$('.poster-card', grid).forEach(card => {
+    card.addEventListener('click', () => {
+      toast(`"${card.dataset.title}" — streaming on F.A.M.E from 1 June 2027`);
+    });
+  });
+}
+
+/* Category chips */
+$('#categoryChips').addEventListener('click', e => {
+  const btn = e.target.closest('.chip');
+  if(!btn) return;
+  $$('#categoryChips .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  state.category = btn.dataset.cat;
+  renderPosters();
+});
+
+renderPosters();
+
+/* =========================================================
+   SEARCH DRAWER
+   ========================================================= */
+const drawer = $('#searchDrawer');
+const input  = $('#searchInput');
+const results = $('#searchResults');
+
+function openSearch(){
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  setTimeout(() => input.focus(), 60);
+}
+function closeSearch(){
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+}
+
+$('#searchBtn').addEventListener('click', openSearch);
+$('#closeSearch').addEventListener('click', closeSearch);
+drawer.addEventListener('click', e => { if(e.target === drawer) closeSearch(); });
+
+function runSearch(q){
+  q = q.trim().toLowerCase();
+  if(!q){
+    results.innerHTML = `<p class="search-empty">Start typing to discover what's coming to F.A.M.E.</p>`;
+    return;
+  }
+  const hits = CATALOGUE.filter(i =>
+    i.title.toLowerCase().includes(q) ||
+    i.meta.toLowerCase().includes(q) ||
+    i.cat.includes(q)
+  );
+  if(!hits.length){
+    results.innerHTML = `<p class="search-empty">No results for "${q}". Try a different title or category.</p>`;
+    return;
+  }
+  results.innerHTML = hits.slice(0, 12).map(i => `
+    <div class="search-result-item" data-title="${i.title}">
+      <b>${i.title}</b>
+      <span>${i.meta}</span>
+    </div>`).join('');
+
+  $$('.search-result-item', results).forEach(el => {
+    el.addEventListener('click', () => {
+      closeSearch();
+      toast(`"${el.dataset.title}" — coming 1 June 2027`);
+    });
+  });
+}
+input.addEventListener('input', e => runSearch(e.target.value));
+
+$$('.search-tags button').forEach(b => {
+  b.addEventListener('click', () => {
+    input.value = b.textContent;
+    runSearch(b.textContent);
+    input.focus();
+  });
+});
+
+/* =========================================================
+   LEGAL MODAL
+   ========================================================= */
+const LEGAL = {
+  terms: {
+    title: 'Terms of Use',
+    body: `
+      <p>These Terms of Use govern your access to and use of the Streaming on F.A.M.E website and, on launch, the Streaming on F.A.M.E service.</p>
+      <h3>1. The Service</h3>
+      <p>Streaming on F.A.M.E provides a service that allows users to access entertainment content over the Internet on supported devices. Some features may be available at no cost, while others require a paid subscription.</p>
+      <h3>2. Age Limitation</h3>
+      <p>You must be at least 16 years of age to create a Streaming on F.A.M.E account. Minors may only use the service under the supervision of an adult.</p>
+      <h3>3. Account Sharing</h3>
+      <p>The service and any content accessed through it are for personal, non-commercial use only and may not be shared with anyone outside of your household.</p>
+      <h3>4. Subscription &amp; Cancellation</h3>
+      <p>Subscriptions continue until terminated. You can cancel at any time from the Account page, effective at the end of your current billing period. Payments are non-refundable for partial periods.</p>
+      <h3>5. Availability</h3>
+      <p>Content availability varies by geographic location and may change from time to time due to licensing restrictions. We do not guarantee that particular content will be available at any given time.</p>
+      <h3>6. Governing Law</h3>
+      <p>These Terms are governed by and construed in accordance with the laws of South Africa. Nothing in these Terms limits any non-waivable consumer protection rights you may have.</p>
+    `
+  },
+  privacy: {
+    title: 'Privacy & POPIA',
+    body: `
+      <p>Streaming on F.A.M.E is committed to protecting your personal information in line with South Africa's Protection of Personal Information Act (POPIA).</p>
+      <h3>What we collect</h3>
+      <p>We collect only what is necessary: your name, contact details, payment information and viewing activity — for the purpose of providing and billing the service.</p>
+      <h3>The 8 conditions of lawful processing</h3>
+      <p>We abide by all eight POPIA conditions: <b>Accountability</b>, <b>Processing Limitation</b>, <b>Purpose Specification</b>, <b>Further Processing Limitation</b>, <b>Information Quality</b>, <b>Openness</b>, <b>Security Safeguards</b> and <b>Data Subject Participation</b>.</p>
+      <h3>Your rights</h3>
+      <p>You have the right to request access to, correction of, or deletion of your personal information at any time. To exercise these rights, contact us through the WhatsApp support line or email.</p>
+      <h3>Security</h3>
+      <p>We implement technical and organisational measures to protect your data from unauthorised access, and we regularly audit our systems.</p>
+    `
+  },
+  cookies: {
+    title: 'Cookies',
+    body: `
+      <p>This website uses a small number of cookies and local storage entries to remember your preferences — for example, whether you prefer dark or light mode.</p>
+      <p>We do not use third-party advertising cookies on this marketing site. Once the F.A.M.E app launches, our cookie policy will be updated and clearly presented during sign-up.</p>
+      <p>You can clear cookies at any time from your browser settings.</p>
+    `
+  }
+};
+
+const legalModal = $('#legalModal');
+$('#closeLegal').addEventListener('click', () => legalModal.classList.remove('open'));
+legalModal.addEventListener('click', e => { if(e.target === legalModal) legalModal.classList.remove('open'); });
+
+$$('[data-legal]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const doc = LEGAL[a.dataset.legal];
+    if(!doc) return;
+    $('#legalTitle').textContent = doc.title;
+    $('#legalBody').innerHTML = doc.body;
+    legalModal.classList.add('open');
+  });
+});
+
+/* =========================================================
+   WAITLIST
+   ========================================================= */
+const form = $('#waitlistForm');
+const emailInput = $('#waitlistEmail');
+const note = $('#waitlistNote');
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const email = emailInput.value.trim();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if(!valid){
+    note.textContent = 'Please enter a valid email address.';
+    note.classList.remove('ok');
+    emailInput.focus();
+    return;
+  }
+  // Store locally (replace with real API call when backend is ready)
+  const list = JSON.parse(localStorage.getItem('fame-waitlist') || '[]');
+  if(!list.includes(email)) list.push(email);
+  localStorage.setItem('fame-waitlist', JSON.stringify(list));
+
+  form.reset();
+  note.textContent = '✓ You\'re on the list! We\'ll be in touch before launch.';
+  note.classList.add('ok');
+  toast('Welcome to the F.A.M.E waitlist');
+});
+
+/* =========================================================
+   HEADER — solid on scroll + active nav highlighting
+   ========================================================= */
+const header = $('#topbar') || $('.site-header');
+window.addEventListener('scroll', () => {
+  header.classList.toggle('solid', window.scrollY > 40);
+}, {passive:true});
+
+/* Active nav link on scroll */
+const navLinks = $$('.desktop-nav a');
+const sections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+if('IntersectionObserver' in window){
+  const navObs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id));
+      }
+    });
+  }, {rootMargin:'-45% 0px -50% 0px'});
+  sections.forEach(s => navObs.observe(s));
+}
+
+/* Mobile tab active state */
+const mobileTabs = $$('.mobile-tabs a');
+mobileTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    mobileTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+/* =========================================================
+   REVEAL ON SCROLL
+   ========================================================= */
+const revealTargets = [
+  '.section-heading','.about-grid','.preview-grid','.feature',
+  '.poster-card','.device','.plan','.step','.tl-item',
+  '.waitlist-inner','.faq details','.about > *','.fact-card'
+];
+const revealEls = $$(revealTargets.join(','));
+revealEls.forEach(el => el.classList.add('reveal'));
+
+if('IntersectionObserver' in window){
+  const obs = new IntersectionObserver((entries, o) => {
+    entries.forEach((entry, i) => {
+      if(entry.isIntersecting){
+        setTimeout(() => entry.target.classList.add('in'), i * 45);
+        o.unobserve(entry.target);
+      }
+    });
+  }, {threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+  revealEls.forEach(el => obs.observe(el));
+} else {
+  revealEls.forEach(el => el.classList.add('in'));
+}
+
+/* =========================================================
+   KEYBOARD
+   ========================================================= */
+window.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    closeSearch();
+    legalModal.classList.remove('open');
+  }
+  // "/" opens search
+  if(e.key === '/' && document.activeElement.tagName !== 'INPUT'){
+    e.preventDefault();
+    openSearch();
+  }
+});
+
+/* =========================================================
+   SMOOTH SCROLL FALLBACK (older browsers)
+   ========================================================= */
+$$('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    if(id === '#' || id.length < 2) return;
+    const target = document.querySelector(id);
+    if(!target) return;
+    e.preventDefault();
+    const top = target.getBoundingClientRect().top + window.pageYOffset - 70;
+    window.scrollTo({top, behavior:'smooth'});
+  });
+});
+
+/* =========================================================
+   FOOTER YEAR
+   ========================================================= */
+const copy = document.querySelector('.copyright');
+if(copy){
+  copy.innerHTML = copy.innerHTML.replace('2026', new Date().getFullYear());
+}

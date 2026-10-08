@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#1E1B4B"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="28"/></filter></defs>
+<rect width="600" height="900" fill="#0d0d0d"/><rect width="600" height="900" fill="url(#g)"/>
+<circle cx="475" cy="150" r="150" fill="#fff" opacity=".11" filter="url(#glow)"/><circle cx="90" cy="730" r="180" fill="#fff" opacity=".08" filter="url(#glow)"/>
+<path d="M-50 680 C 120 560, 220 820, 680 500" fill="none" stroke="#fff" stroke-opacity=".13" stroke-width="90"/>
+<path d="M-50 760 C 160 620, 310 900, 680 590" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="26"/>
+<rect x="34" y="34" width="532" height="832" rx="28" fill="none" stroke="#fff" stroke-opacity=".2"/>
+<text x="50" y="92" fill="#fff" font-family="Arial,sans-serif" font-size="22" font-weight="800" letter-spacing="5">STREAMING ON F.A.M.E</text>
+<text x="50" y="132" fill="#fff" opacity=".75" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="3">NEW SERIES</text>
+<text x="50" y="700" fill="#fff" font-family="Arial,sans-serif" font-size="58" font-weight="900">Midnight Radio</text>
+<text x="50" y="746" fill="#fff" opacity=".78" font-family="Arial,sans-serif" font-size="22">Thriller · 2027</text>
+<circle cx="70" cy="810" r="22" fill="#fff"/><path d="M64 798l18 12-18 12z" fill="#1E1B4B"/>
+<text x="110" y="818" fill="#fff" opacity=".85" font-family="Arial,sans-serif" font-size="17" font-weight="700">PRODUCT PREVIEW ARTWORK</text>
+</svg>

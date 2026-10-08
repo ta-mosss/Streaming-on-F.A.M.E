@@ -1,0 +1,28 @@
+---
+
+## Git / GitHub workflow
+
+This repository is already Git-enabled. Review changes before committing or pushing.
+
+```bash
+git status
+git add .
+git commit -m "feat: upgrade F.A.M.E showcase website"
+git push
+```
+
+### Local development
+
+```bash
+npm install
+npm run dev
+```
+
+### Production build
+
+```bash
+npm run build
+npm run preview
+```
+
+See `README.md` for the website/VOD boundary, waitlist endpoint configuration, staging and GitHub Actions deployment.

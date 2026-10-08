@@ -1,0 +1,34 @@
+name: F.A.M.E Staging Build
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Build staging bundle
+        run: npm run build
+        env:
+          VITE_WAITLIST_ENDPOINT: ${{ secrets.STAGING_WAITLIST_ENDPOINT }}
+          VITE_PLAUSIBLE_DOMAIN: ${{ vars.STAGING_PLAUSIBLE_DOMAIN }}
+      - name: Publish staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fame-staging-${{ github.sha }}
+          path: dist
+          retention-days: 14
