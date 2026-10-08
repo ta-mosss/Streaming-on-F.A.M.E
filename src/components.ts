@@ -1,4 +1,5 @@
-import { catalogue, categories, Title } from './data/catalogue';
+﻿import { catalogue, categories } from './data/catalogue';
+import type { Title } from './data/catalogue';
 import { track } from './analytics';
 
 const esc = (value: string) => value.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c] || c));
@@ -15,9 +16,9 @@ export class ContentCard extends HTMLElement {
       <button class="poster" aria-label="Open ${esc(item.title)} details">
         <img src="${item.artwork}" alt="${esc(item.title)} concept artwork" loading="lazy" decoding="async">
         <span class="poster-badge">${esc(item.kind)}</span>
-        <span class="poster-play" aria-hidden="true">▶</span>
+        <span class="poster-play" aria-hidden="true">â–¶</span>
       </button>
-      <div class="card-copy"><h3>${esc(item.title)}</h3><p>${item.year} · ${esc(item.rating)} · ${esc(item.genre)}</p></div>`;
+      <div class="card-copy"><h3>${esc(item.title)}</h3><p>${item.year} Â· ${esc(item.rating)} Â· ${esc(item.genre)}</p></div>`;
     this.querySelector('button')?.addEventListener('click', () => {
       track('content_opened', { title: item.title, kind: item.kind });
       document.dispatchEvent(new CustomEvent('fame:open-title', { detail: item }));
@@ -54,13 +55,13 @@ export class ProductPreview extends HTMLElement {
       <div class="preview-shell">
         <div class="preview-topbar"><div class="preview-brand"><span class="mini-mark">F</span><b>F.A.M.E</b><span class="preview-label">PRODUCT PREVIEW</span></div><span class="preview-status"><i></i> Concept</span></div>
         <div class="preview-hero" style="--preview-art:url('${featured.artwork}')">
-          <div class="preview-hero-copy"><span class="eyebrow">F.A.M.E ORIGINAL</span><h3>${esc(featured.title)}</h3><p>${esc(featured.synopsis)}</p><div class="preview-actions"><button class="primary-btn" data-preview-play>▶ Play preview</button><button class="ghost-btn" data-preview-info>＋ My List</button></div></div>
+          <div class="preview-hero-copy"><span class="eyebrow">F.A.M.E ORIGINAL</span><h3>${esc(featured.title)}</h3><p>${esc(featured.synopsis)}</p><div class="preview-actions"><button class="primary-btn" data-preview-play>â–¶ Play preview</button><button class="ghost-btn" data-preview-info>ï¼‹ My List</button></div></div>
         </div>
         <div class="preview-nav" role="tablist" aria-label="Product preview navigation">
           ${[['home','Home'],['originals','Originals'],['mylist','My List'],['profile','Profile']].map(([id,label]) => `<button role="tab" aria-selected="${this.active===id}" class="${this.active===id?'active':''}" data-tab="${id}">${label}</button>`).join('')}
         </div>
         <div class="preview-content"><div class="preview-row-label">${this.active==='home'?'Continue Watching':this.active==='originals'?'African Originals':this.active==='mylist'?'My List':'Family Profiles'}</div><div class="preview-posters">${ids.map(id => { const item=catalogue.find(x=>x.id===id)!; return `<button class="preview-card" data-id="${item.id}"><img src="${item.artwork}" alt="${esc(item.title)}"><span>${esc(item.title)}</span></button>`; }).join('')}</div></div>
-        <div class="preview-bottom"><span>⌂ Home</span><span>⌕ Search</span><span>＋ My List</span><span>◉ Profile</span></div>
+        <div class="preview-bottom"><span>âŒ‚ Home</span><span>âŒ• Search</span><span>ï¼‹ My List</span><span>â—‰ Profile</span></div>
       </div>`;
     this.querySelectorAll<HTMLElement>('[data-tab]').forEach(btn => btn.addEventListener('click', () => { this.active = btn.dataset.tab || 'home'; track('preview_tab_used',{tab:this.active}); this.render(); }));
     this.querySelectorAll<HTMLElement>('.preview-card').forEach(btn => btn.addEventListener('click', () => { const item=catalogue.find(x=>x.id===btn.dataset.id); if(item) document.dispatchEvent(new CustomEvent('fame:open-title',{detail:item})); }));
@@ -77,3 +78,4 @@ export function renderCards(selector: string, ids: string[]) {
 export function renderCategoryButtons() {
   return categories.map(c => `<button class="filter-chip ${c.id==='all'?'active':''}" data-filter="${c.id}">${c.label}</button>`).join('');
 }
+
