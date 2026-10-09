@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fame-pink: #E5007E;
+  --fame-purple: #4A0E7A;
+  --fame-bg: #0A0A0A;
+  --fame-surface: #141414;
+  --fame-text: #FFFFFF;
+  --fame-muted: #9E9EA8;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--fame-bg);
+  color: var(--fame-text);
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }

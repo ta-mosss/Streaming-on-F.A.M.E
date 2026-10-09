@@ -1,0 +1,2272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0A0A0A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>F.A.M.E — Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════
+   TOKENS
+   ══════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --pink:#E5007E; --purple:#4A0E7A;
+  --grad:linear-gradient(135deg,#FF168D 0%,#E5007E 50%,#4A0E7A 100%);
+  --grad-soft:linear-gradient(135deg,rgba(229,0,126,.22),rgba(74,14,122,.22));
+  --bg:#0A0A0A; --surface:#141414; --surface2:#1F1F1F; --surface3:#2A2A2A;
+  --line:rgba(255,255,255,.09);
+  --text:#FFFFFF; --muted:#9E9EA8; --dim:#5A5A63;
+  --tab-h:64px; --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+  --shadow:0 12px 40px rgba(0,0,0,.6);
+  --r:12px;
+}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:14px; line-height:1.5; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  user-select:none; -webkit-user-select:none;
+}
+input,textarea{-webkit-user-select:text;user-select:text}
+h1,h2,h3,h4{font-family:Montserrat,sans-serif;font-weight:800;letter-spacing:-.02em;margin:0;line-height:1.1}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+::-webkit-scrollbar{width:0;height:0}
+::selection{background:var(--pink);color:#fff}
+
+/* ══════════════════════════════════════════════════════════
+   SHELL
+   ══════════════════════════════════════════════════════════ */
+#app{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUTH / GATE
+   ══════════════════════════════════════════════════════════ */
+.screen{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  background:var(--bg);overflow-y:auto;overflow-x:hidden;
+  padding-top:var(--safe-t);padding-bottom:var(--safe-b);
+  -webkit-overflow-scrolling:touch;
+}
+.screen.on{display:flex}
+.screen.center{justify-content:center;align-items:center;text-align:center;padding:24px}
+
+/* Decorative backdrop for auth */
+.screen.auth::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 70% 20%,rgba(229,0,126,.28),transparent 45%),
+    radial-gradient(circle at 20% 80%,rgba(74,14,122,.35),transparent 50%),
+    repeating-linear-gradient(115deg,rgba(255,255,255,.028) 0 2px,transparent 2px 22px);
+}
+.screen.auth > *{position:relative;z-index:2}
+
+.brand-lockup{display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:40px}
+.brand-mark-lg{width:84px;height:84px}
+.brand-word{display:flex;flex-direction:column;align-items:center;gap:3px}
+.brand-word .t1{font-family:Montserrat;font-weight:700;font-size:10px;letter-spacing:.34em;color:var(--muted)}
+.brand-word .t2{
+  font-family:Montserrat;font-weight:900;font-size:32px;letter-spacing:.01em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.brand-word .t3{font-family:Montserrat;font-weight:700;font-size:9px;letter-spacing:.3em;color:var(--muted);margin-top:2px}
+
+.auth-card{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px 24px;box-shadow:var(--shadow)}
+.auth-card h1{font-size:24px;margin-bottom:6px;text-align:left}
+.auth-card .sub{color:var(--muted);font-size:13px;margin:0 0 22px;text-align:left;line-height:1.55}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.field input{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;
+  padding:13px 15px;font-size:15px;color:var(--text);outline:0;font-family:inherit;
+  transition:border-color .2s;
+}
+.field input:focus{border-color:var(--pink)}
+.field input::placeholder{color:var(--dim)}
+.field .err{font-size:11.5px;color:#FF5C7A;font-weight:600;min-height:16px}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 22px;border-radius:10px;font-weight:700;font-size:14.5px;
+  transition:transform .15s,filter .2s,background .2s,opacity .2s;
+  white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 10px 30px rgba(229,0,126,.25);width:100%}
+.btn-primary:hover:not(:disabled){filter:brightness(1.08)}
+.btn-outline{border:1px solid var(--line);color:var(--text);width:100%}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink)}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text)}
+.btn-ghost:hover{background:rgba(255,255,255,.12)}
+.btn-sm{padding:10px 16px;font-size:13px;border-radius:9px}
+
+.auth-toggle{text-align:center;margin-top:20px;font-size:13px;color:var(--muted)}
+.auth-toggle b{color:var(--pink);cursor:pointer;font-weight:700;margin-left:4px}
+.auth-toggle b:hover{text-decoration:underline}
+
+.auth-foot{margin-top:24px;font-size:11px;color:var(--dim);text-align:center;line-height:1.7;max-width:380px}
+.auth-foot a{color:var(--muted)}
+
+/* ══════════════════════════════════════════════════════════
+   PROFILE GATE
+   ══════════════════════════════════════════════════════════ */
+.gate-title{font-size:clamp(26px,6vw,36px);margin-bottom:8px}
+.gate-sub{color:var(--muted);font-size:14px;margin-bottom:44px}
+.profiles{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;max-width:520px}
+.profile-card{display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:transform .2s}
+.profile-card:active{transform:scale(.94)}
+.profile-card .pav{
+  width:96px;height:96px;border-radius:22px;display:grid;place-items:center;
+  font-family:Montserrat;font-weight:900;font-size:36px;color:#fff;
+  border:3px solid transparent;transition:.2s;position:relative;overflow:hidden;
+}
+.profile-card .pav::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(48deg,rgba(255,255,255,.06) 0 2px,transparent 2px 14px);
+}
+.profile-card:hover .pav{border-color:var(--pink);transform:scale(1.04)}
+.profile-card b{font-size:14px;font-weight:600;color:var(--muted)}
+.profile-card:hover b{color:var(--text)}
+.pin-note{margin-top:34px;font-size:11.5px;color:var(--dim);max-width:340px;text-align:center;line-height:1.7}
+
+/* ══════════════════════════════════════════════════════════
+   MAIN APP
+   ══════════════════════════════════════════════════════════ */
+.app-screen{background:var(--bg)}
+.app-scroll{
+  flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--tab-h) + var(--safe-b) + 24px);
+  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+}
+
+/* ── Top bar ── */
+.top-bar{
+  position:absolute;top:0;left:0;right:0;height:56px;z-index:40;
+  display:flex;align-items:center;gap:12px;
+  padding:0 16px;padding-top:var(--safe-t);
+  background:linear-gradient(180deg,rgba(10,10,10,.9) 0%,rgba(10,10,10,.5) 70%,transparent 100%);
+  transition:background .3s;
+}
+.top-bar.solid{background:var(--bg);border-bottom:1px solid var(--line)}
+.top-bar .brand-mini{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.top-bar .brand-mini svg{width:28px;height:28px;flex:none}
+.top-bar .brand-mini span{
+  font-family:Montserrat;font-weight:900;font-size:15px;letter-spacing:.02em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.top-bar .top-actions{display:flex;gap:6px}
+.iconbtn{
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  color:var(--text);transition:background .2s,transform .15s;
+}
+.iconbtn:hover{background:rgba(255,255,255,.12)}
+.iconbtn:active{transform:scale(.9)}
+.iconbtn svg{width:20px;height:20px}
+.avatar-mini{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  font-family:Montserrat;font-weight:900;font-size:13px;color:#fff;
+  border:1.5px solid transparent;transition:.2s;
+}
+.avatar-mini:hover{border-color:var(--pink)}
+
+/* ── Hero ── */
+.hero{position:relative;height:78vh;min-height:520px;max-height:680px;overflow:hidden;display:flex;align-items:flex-end}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .6s}
+.hero-bg::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 2px,transparent 2px 20px);
+}
+.hero-grad{position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(10,10,10,.7) 0%,rgba(10,10,10,.05) 32%,rgba(10,10,10,.75) 72%,var(--bg) 100%),
+  linear-gradient(90deg,rgba(10,10,10,.9) 0%,transparent 70%);}
+.hero-body{position:relative;z-index:2;padding:0 20px 30px;width:100%}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#fff;background:var(--grad);padding:5px 10px;border-radius:5px;margin-bottom:12px}
+.hero-title{font-size:clamp(32px,9vw,56px);font-weight:900;line-height:.94;margin-bottom:12px;text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#E8E8E8;margin-bottom:12px}
+.hero-meta i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.55}
+.hero-chip{border:1px solid rgba(255,255,255,.4);padding:2px 7px;border-radius:4px;font-size:10.5px}
+.hero-syn{font-size:13.5px;line-height:1.55;color:#D6D6D6;margin:0 0 18px;max-width:520px;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.hero-actions .btn{flex:0 0 auto;padding:13px 22px;font-size:14px}
+.hero-actions .btn-primary{width:auto}
+
+/* ── Rows ── */
+.row{margin-top:28px}
+.row-head{display:flex;align-items:baseline;gap:10px;padding:0 20px 12px}
+.row-head h2{font-size:16px;font-weight:800}
+.row-head .see{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:2px}
+.row-head .see:hover{color:var(--text)}
+.row-scroll{
+  display:flex;gap:10px;overflow-x:auto;padding:4px 20px 8px;
+  scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.row-scroll::-webkit-scrollbar{display:none}
+
+/* Top-10 rail */
+.row.top10 .row-scroll{gap:0}
+.top-card{flex:none;display:flex;align-items:flex-end;cursor:pointer;scroll-snap-align:start;transition:transform .2s}
+.top-card:active{transform:scale(.96)}
+.top-card .rank{
+  font-family:Montserrat;font-weight:900;font-size:96px;line-height:.7;letter-spacing:-.08em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  padding-right:2px;margin-bottom:12px;flex:none;width:66px;text-align:center;
+}
+.top-card .poster-sm{width:112px;flex:none}
+
+/* ── Poster ── */
+.poster{
+  flex:none;width:128px;cursor:pointer;scroll-snap-align:start;
+  transition:transform .2s;
+}
+.poster:active{transform:scale(.96)}
+@media(min-width:520px){.poster{width:150px}}
+@media(min-width:820px){.poster{width:172px}}
+.poster .art{
+  position:relative;width:100%;aspect-ratio:2/3;border-radius:10px;overflow:hidden;
+  box-shadow:0 6px 22px rgba(0,0,0,.55);
+  background:var(--surface2);
+}
+.poster .art::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--a1,#E5007E),var(--a2,#4A0E7A));
+}
+.poster .art::after{
+  content:"";position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(48deg,rgba(255,255,255,.05) 0 2px,transparent 2px 15px),
+    linear-gradient(180deg,transparent 45%,rgba(0,0,0,.85) 100%);
+}
+.poster .art img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;
+  opacity:0;transition:opacity .3s,transform .4s;
+}
+.poster .art img.loaded{opacity:1}
+.poster:active .art img{transform:scale(1.05)}
+.poster .badge{
+  position:absolute;top:8px;left:8px;z-index:3;font-size:8px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;background:rgba(0,0,0,.65);
+  border:1px solid rgba(255,255,255,.28);color:#fff;padding:3px 6px;border-radius:4px;
+}
+.poster .ttl{
+  position:absolute;left:8px;right:8px;bottom:8px;z-index:3;
+  font-family:Montserrat;font-weight:900;font-size:11.5px;line-height:1.1;
+  text-transform:uppercase;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.8);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.poster .prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.25);z-index:4}
+.poster .prog i{display:block;height:100%;background:var(--grad)}
+.poster .ql{
+  position:absolute;top:8px;right:8px;z-index:5;width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.35);
+  display:grid;place-items:center;color:#fff;
+}
+.poster .ql svg{width:14px;height:14px}
+.poster .ql.on{background:var(--grad);border-color:transparent}
+.poster .meta{padding:8px 2px 0}
+.poster .meta b{display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poster .meta span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+
+/* ── Bottom tabs ── */
+.tab-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  height:calc(var(--tab-h) + var(--safe-b));padding-bottom:var(--safe-b);
+  display:grid;grid-template-columns:repeat(5,1fr);
+  background:rgba(12,12,12,.94);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--line);
+}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:9.5px;font-weight:700;letter-spacing:.02em;position:relative;transition:color .2s}
+.tab svg{width:22px;height:22px;transition:transform .2s}
+.tab.active{color:var(--text)}
+.tab.active svg{transform:scale(1.1)}
+.tab.active::before{content:"";position:absolute;top:0;width:26px;height:2.5px;border-radius:0 0 4px 4px;background:var(--grad)}
+.tab .dot{position:absolute;top:8px;right:calc(50% - 16px);width:6px;height:6px;border-radius:50%;background:var(--pink);display:none}
+.tab.has-new .dot{display:block}
+
+/* ══════════════════════════════════════════════════════════
+   SEARCH
+   ══════════════════════════════════════════════════════════ */
+.page-head{padding:76px 20px 8px}
+.page-head h1{font-size:28px;margin-bottom:4px}
+.page-head p{color:var(--muted);font-size:13px;margin:0}
+.search-bar{
+  margin:12px 20px;display:flex;align-items:center;gap:10px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+  transition:border-color .2s;
+}
+.search-bar:focus-within{border-color:var(--pink)}
+.search-bar svg{width:18px;height:18px;color:var(--muted);flex:none}
+.search-bar input{flex:1;background:none;border:0;outline:0;color:var(--text);font-size:15px;font-family:inherit}
+.search-bar input::placeholder{color:var(--dim)}
+.search-clear{width:22px;height:22px;border-radius:50%;background:var(--surface3);display:none;place-items:center;color:var(--muted)}
+.search-clear.on{display:grid}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 20px 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:none;padding:8px 14px;border-radius:20px;background:var(--surface);border:1px solid var(--line);
+  font-size:12.5px;font-weight:600;color:var(--muted);transition:.2s;
+}
+.chip:hover{border-color:rgba(229,0,126,.4);color:var(--text)}
+.chip.active{background:var(--grad);color:#fff;border-color:transparent}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;padding:0 20px 20px}
+.grid .poster{width:auto}
+@media(min-width:820px){.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}}
+
+.empty{text-align:center;padding:60px 30px;color:var(--muted)}
+.empty svg{width:48px;height:48px;margin-bottom:14px;opacity:.35}
+.empty h3{font-family:Montserrat;font-size:17px;margin-bottom:6px;color:var(--text)}
+.empty p{font-size:13px;margin:0 0 20px;line-height:1.6}
+
+/* ══════════════════════════════════════════════════════════
+   PROFILE PAGE
+   ══════════════════════════════════════════════════════════ */
+.profile-header{padding:80px 20px 20px;display:flex;align-items:center;gap:16px}
+.big-avatar{
+  width:76px;height:76px;border-radius:20px;display:grid;place-items:center;
+  font-family:Montserrat;font-weight:900;font-size:30px;color:#fff;
+  border:2px solid transparent;box-shadow:0 10px 30px rgba(229,0,126,.3);
+}
+.profile-header .ph-info h1{font-size:22px;margin-bottom:2px}
+.profile-header .ph-info p{color:var(--muted);font-size:12.5px;margin:0}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin:0 20px 14px}
+.tile h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.tile p{color:var(--muted);font-size:12.5px;margin:0;line-height:1.55}
+.tile .title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tile .title-row h3{margin:0}
+.plan-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:.2s}
+.plan-row:last-child{border-bottom:0;padding-bottom:0}
+.plan-row.on{color:var(--text)}
+.radio{
+  width:20px;height:20px;border-radius:50%;border:2px solid var(--muted);flex:none;
+  display:grid;place-items:center;transition:.2s;
+}
+.plan-row.on .radio{border-color:var(--pink)}
+.plan-row.on .radio::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--grad)}
+.plan-row .pr{flex:1}
+.plan-row .pr b{display:block;font-size:13.5px;font-weight:700}
+.plan-row .pr span{font-size:11.5px;color:var(--muted)}
+.plan-row .price{font-family:Montserrat;font-weight:800;font-size:14px}
+
+.list-item{
+  display:flex;align-items:center;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--line);cursor:pointer;
+}
+.list-item:last-child{border-bottom:0;padding-bottom:0}
+.list-item:first-child{padding-top:0}
+.list-item .ic{
+  width:34px;height:34px;border-radius:10px;background:var(--surface2);
+  display:grid;place-items:center;flex:none;color:var(--text);
+}
+.list-item .ic svg{width:17px;height:17px}
+.list-item .txt{flex:1;min-width:0}
+.list-item .txt b{display:block;font-size:13.5px;font-weight:600}
+.list-item .txt span{font-size:11.5px;color:var(--muted)}
+.list-item .arrow{color:var(--dim);width:16px;height:16px}
+
+.switch{width:42px;height:24px;border-radius:20px;background:var(--surface3);position:relative;flex:none;transition:.25s}
+.switch::after{
+  content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+  background:#fff;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.switch.on{background:var(--grad)}
+.switch.on::after{transform:translateX(18px)}
+
+.signout{margin:6px 20px 22px;padding:14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);
+  color:#FF5C7A;font-weight:700;font-size:13.5px;text-align:center;transition:.2s}
+.signout:hover{background:rgba(255,92,122,.1);border-color:rgba(255,92,122,.35)}
+
+/* ══════════════════════════════════════════════════════════
+   DETAIL SHEET
+   ══════════════════════════════════════════════════════════ */
+.sheet-bd{
+  position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.72);
+  backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.sheet-bd.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:91;
+  max-height:92vh;overflow-y:auto;
+  background:var(--surface);border-radius:22px 22px 0 0;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.9,.25,1);
+  padding-bottom:calc(20px + var(--safe-b));
+  -webkit-overflow-scrolling:touch;
+}
+.sheet.on{transform:translateY(0)}
+.sheet .grip{width:40px;height:4px;border-radius:4px;background:var(--line);margin:10px auto 0}
+.sheet-hero{position:relative;height:230px;overflow:hidden;margin-top:4px}
+.sheet-hero .bg{position:absolute;inset:0}
+.sheet-hero .bg::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(48deg,rgba(255,255,255,.05) 0 2px,transparent 2px 15px);
+}
+.sheet-hero .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(0,0,0,.6) 65%,var(--surface) 100%)}
+.sheet-hero .close{
+  position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;
+  background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;z-index:5;
+  backdrop-filter:blur(4px);
+}
+.sheet-hero .ttl{position:absolute;left:20px;right:20px;bottom:14px;z-index:3}
+.sheet-hero .ttl h2{font-family:Montserrat;font-weight:900;font-size:clamp(22px,7vw,34px);color:#fff;text-transform:uppercase;line-height:1;text-shadow:0 3px 18px rgba(0,0,0,.7)}
+.sheet-body{padding:16px 20px 0}
+.meta-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:14px}
+.meta-line .chip-badge{padding:2px 7px;border:1px solid var(--line);border-radius:4px;font-size:10.5px}
+.meta-line i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.5}
+.syn{font-size:13.5px;line-height:1.65;color:rgba(255,255,255,.86);margin:0 0 18px}
+.sheet-actions{display:flex;gap:10px;margin-bottom:20px}
+.sheet-actions .btn{flex:1;padding:14px 10px}
+.sheet-actions .btn-icon{flex:0 0 auto;width:52px;padding:0;display:grid;place-items:center}
+
+.section-label{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+
+.ep{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;align-items:center;transition:.15s}
+.ep:hover{background:rgba(255,255,255,.03)}
+.ep .num{font-family:Montserrat;font-weight:900;font-size:17px;color:var(--muted);width:22px;flex:none;text-align:center}
+.ep .info{flex:1;min-width:0}
+.ep .info b{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
+.ep .info span{font-size:11px;color:var(--muted)}
+.ep .play-ic{
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  display:grid;place-items:center;flex:none;color:var(--muted);
+}
+.ep .play-ic svg{width:14px;height:14px;margin-left:2px}
+
+.similar{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin:0 -20px;padding-left:20px;padding-right:20px}
+.similar .poster{width:118px}
+.similar::-webkit-scrollbar{display:none}
+
+/* ══════════════════════════════════════════════════════════
+   PLAYER
+   ══════════════════════════════════════════════════════════ */
+.player{
+  position:fixed;inset:0;z-index:200;background:#000;
+  display:none;overflow:hidden;touch-action:manipulation;
+}
+.player.on{display:block}
+.player video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  background:#000;
+}
+.player.hide-ui .pl-top,
+.player.hide-ui .pl-bottom,
+.player.hide-ui .pl-center,
+.player.hide-ui .pl-title{opacity:0;pointer-events:none}
+
+.pl-top{
+  position:absolute;top:0;left:0;right:0;z-index:5;
+  padding:14px 14px 50px;padding-top:calc(14px + var(--safe-t));
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(180deg,rgba(0,0,0,.75),transparent);
+  transition:opacity .3s;
+}
+.pl-top .pl-back{
+  width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);
+  color:#fff;display:grid;place-items:center;flex:none;
+  backdrop-filter:blur(6px);
+}
+.pl-top .pl-meta{flex:1;min-width:0;color:#fff}
+.pl-top .pl-meta .t{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-top .pl-meta .s{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px}
+
+.pl-title{
+  position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);
+  text-align:center;padding:0 30px;pointer-events:none;
+  font-family:Montserrat;font-weight:900;font-size:clamp(20px,6vw,44px);
+  text-transform:uppercase;color:rgba(255,255,255,.92);
+  text-shadow:0 6px 40px rgba(0,0,0,.85);letter-spacing:-.01em;
+  transition:opacity .6s;
+}
+.pl-title.bump{animation:bump 3s forwards}
+@keyframes bump{
+  0%{opacity:1}80%{opacity:1}100%{opacity:0}
+}
+
+.pl-center{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  gap:clamp(24px,10vw,70px);z-index:4;pointer-events:none;transition:opacity .3s;
+}
+.pl-center button{pointer-events:auto}
+.pl-btn{
+  width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.14);
+  backdrop-filter:blur(6px);color:#fff;display:grid;place-items:center;
+  transition:.2s;border:1px solid rgba(255,255,255,.1);
+}
+.pl-btn:hover{background:rgba(255,255,255,.28)}
+.pl-btn:active{transform:scale(.9)}
+.pl-btn svg{width:22px;height:22px}
+.pl-btn.main{
+  width:76px;height:76px;background:rgba(255,255,255,.96);color:#000;
+}
+.pl-btn.main svg{width:30px;height:30px}
+
+.pl-bottom{
+  position:absolute;left:0;right:0;bottom:0;z-index:5;
+  padding:50px 18px calc(18px + var(--safe-b));
+  background:linear-gradient(0deg,rgba(0,0,0,.9),transparent);
+  transition:opacity .3s;
+}
+.pl-scrub{
+  height:4px;background:rgba(255,255,255,.25);border-radius:4px;
+  position:relative;cursor:pointer;margin-bottom:6px;transition:height .15s;
+}
+.pl-scrub:hover{height:6px}
+.pl-scrub .fill{
+  height:100%;background:var(--grad);border-radius:4px;width:0;
+  position:relative;pointer-events:none;
+}
+.pl-scrub .fill::after{
+  content:"";position:absolute;right:-6px;top:50%;transform:translateY(-50%);
+  width:12px;height:12px;border-radius:50%;background:#fff;
+  transform:translateY(-50%) scale(0);transition:transform .15s;
+}
+.pl-scrub:hover .fill::after{transform:translateY(-50%) scale(1)}
+.pl-time{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums;margin-bottom:12px}
+.pl-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pl-pill{
+  padding:7px 13px;border-radius:20px;border:1px solid rgba(255,255,255,.22);
+  font-size:11.5px;font-weight:700;color:#fff;transition:.2s;
+}
+.pl-pill:hover{background:rgba(255,255,255,.15)}
+.pl-pill.on{background:var(--grad);border-color:transparent}
+.pl-spacer{flex:1}
+
+.pl-subs{
+  position:absolute;left:8%;right:8%;bottom:16%;text-align:center;z-index:3;
+  pointer-events:none;transition:bottom .3s;
+}
+.player:not(.hide-ui) .pl-subs{bottom:24%}
+.pl-subs span{
+  display:inline-block;background:rgba(0,0,0,.72);color:#fff;
+  font-size:clamp(13px,3.4vw,17px);font-weight:600;
+  padding:4px 11px;border-radius:5px;line-height:1.4;
+}
+
+/* ── Ad overlay ── */
+.ad{
+  position:absolute;inset:0;z-index:20;background:#000;
+  display:none;flex-direction:column;
+}
+.ad.on{display:flex}
+.ad-body{flex:1;position:relative;overflow:hidden;display:grid;place-items:center}
+.ad-art{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 70% 25%,rgba(229,0,126,.45),transparent 55%),
+    linear-gradient(135deg,#1a0a24,#0D0D0D);
+  animation:adflow 12s ease-in-out infinite alternate;
+}
+@keyframes adflow{0%{transform:scale(1)}100%{transform:scale(1.15)}}
+.ad-art::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(58deg,rgba(255,255,255,.04) 0 2px,transparent 2px 22px);
+}
+.ad-content{position:relative;z-index:2;text-align:center;padding:24px;color:#fff}
+.ad-lbl{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;font-weight:700}
+.ad-content h3{
+  font-family:Montserrat;font-weight:900;font-size:clamp(22px,7vw,42px);
+  text-transform:uppercase;margin-bottom:10px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.ad-content p{color:var(--muted);font-size:14px;max-width:440px;margin:0 auto 22px;line-height:1.6}
+.ad-content .btn-primary{max-width:320px;margin:0 auto}
+.ad-bar{
+  padding:14px 18px calc(18px + var(--safe-b));background:#0A0A0A;
+  display:flex;align-items:center;gap:14px;
+}
+.ad-bar .t{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ad-bar .grow{flex:1;height:3px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.ad-bar .grow i{display:block;height:100%;width:0;background:var(--grad);transition:width .3s linear}
+.ad-skip{
+  padding:9px 16px;border-radius:8px;background:rgba(255,255,255,.14);color:#fff;
+  font-size:12.5px;font-weight:700;border:1px solid rgba(255,255,255,.2);
+  transition:.2s;white-space:nowrap;
+}
+.ad-skip:disabled{opacity:.4;cursor:default}
+.ad-skip:not(:disabled):hover{background:rgba(255,255,255,.24)}
+
+/* ── Player end card ── */
+.pl-end{
+  position:absolute;inset:0;z-index:15;background:rgba(0,0,0,.9);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px;text-align:center;
+}
+.pl-end.on{display:flex}
+.pl-end h3{font-family:Montserrat;font-weight:900;font-size:clamp(24px,7vw,42px);margin-bottom:10px;text-transform:uppercase}
+.pl-end p{color:var(--muted);font-size:14px;margin:0 0 26px;max-width:400px;line-height:1.6}
+.pl-end .btn-primary{max-width:280px;margin-bottom:12px}
+
+/* ══════════════════════════════════════════════════════════
+   TOASTS & EXTRAS
+   ══════════════════════════════════════════════════════════ */
+.toast{
+  position:fixed;left:50%;bottom:calc(var(--tab-h) + var(--safe-b) + 22px);
+  transform:translate(-50%,20px);z-index:400;
+  background:var(--surface3);color:var(--text);
+  border:1px solid var(--line);padding:12px 20px;border-radius:12px;
+  font-size:13px;font-weight:600;box-shadow:var(--shadow);
+  opacity:0;pointer-events:none;transition:.3s;max-width:88vw;text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.success{background:linear-gradient(135deg,#1a3a2a,#0D0D0D);border-color:rgba(61,220,151,.35)}
+.toast.error{background:linear-gradient(135deg,#3a1a20,#0D0D0D);border-color:rgba(255,92,122,.35)}
+
+/* ── Desktop tweak ── */
+@media(min-width:820px){
+  .hero{height:70vh;min-height:560px}
+  .hero-body{padding:0 60px 50px}
+  .row-head{padding:0 60px 12px}
+  .row-scroll{padding:6px 60px 10px}
+  .page-head{padding:90px 60px 8px}
+  .search-bar{margin:12px 60px}
+  .chips{padding:6px 60px 12px}
+  .grid{padding:0 60px 24px}
+  .profile-header{padding:90px 60px 20px}
+  .tile{margin-left:60px;margin-right:60px;max-width:820px}
+  .signout{margin-left:60px;margin-right:60px;max-width:820px}
+  .top-bar{padding:0 50px}
+  .sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-46%) scale(.98);width:min(880px,90vw);max-height:88vh;border-radius:18px;opacity:0}
+  .sheet.on{transform:translate(-50%,-50%) scale(1);opacity:1;transition:transform .3s,opacity .3s}
+  .sheet .grip{display:none}
+  .sheet-hero{height:340px;border-radius:18px 18px 0 0}
+  .sheet-body{padding:22px 34px 0}
+  .sheet-split{display:grid;grid-template-columns:1.4fr 1fr;gap:36px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     SVG LOGO LIBRARY
+     ══════════════════════════════════════════════════════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="fameG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF168D"/>
+      <stop offset="50%" stop-color="#E5007E"/>
+      <stop offset="100%" stop-color="#4A0E7A"/>
+    </linearGradient>
+    <symbol id="fameMark" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="url(#fameG)" stroke-width="4" opacity=".45"/>
+      <path d="M72 22a36 36 0 1 0 12 27" fill="none" stroke="url(#fameG)" stroke-width="4" opacity=".9"/>
+      <text x="50" y="66" text-anchor="middle" font-family="Montserrat,sans-serif" font-weight="900" font-size="46" fill="url(#fameG)">S</text>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="app">
+
+  <!-- ═══════════════ AUTH SCREEN ═══════════════ -->
+  <div class="screen auth on" id="screen-auth">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 20px">
+      <div class="brand-lockup">
+        <svg class="brand-mark-lg" viewBox="0 0 100 100"><use href="#fameMark"/></svg>
+        <div class="brand-word">
+          <span class="t1">STREAMING ON</span>
+          <span class="t2">F.A.M.E</span>
+          <span class="t3">YOUR STAGE. YOUR STORY.</span>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <h1 id="authTitle">Welcome back</h1>
+        <p class="sub" id="authSub">Sign in to continue watching.</p>
+
+        <form id="authForm" novalidate>
+          <div class="field" id="nameField" style="display:none">
+            <label for="inpName">Full name</label>
+            <input id="inpName" type="text" placeholder="e.g. Matodzi Makananisa" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="inpEmail">Email</label>
+            <input id="inpEmail" type="email" placeholder="you@email.com" autocomplete="email">
+          </div>
+          <div class="field" id="passField">
+            <label for="inpPass">Password</label>
+            <input id="inpPass" type="password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <div class="field" id="errField" style="margin-top:-4px">
+            <div class="err" id="authErr"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="authSubmit">Sign in</button>
+        </form>
+
+        <div class="auth-toggle">
+          <span id="authToggleText">New to F.A.M.E?</span>
+          <b id="authToggleBtn">Create account</b>
+        </div>
+      </div>
+
+      <div class="auth-foot">
+        By continuing you agree to our <a href="#" onclick="return false">Terms of Use</a> and
+        <a href="#" onclick="return false">Privacy & POPIA Policy</a>. POPIA compliant.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PROFILE GATE ═══════════════ -->
+  <div class="screen center" id="screen-gate">
+    <h1 class="gate-title">Who's watching?</h1>
+    <p class="gate-sub" id="gateSub">Choose your profile to continue.</p>
+    <div class="profiles" id="gateProfiles"></div>
+    <p class="pin-note" id="pinNote">Kids Mode is PIN-protected. Demo PIN: <b style="color:var(--pink)">1234</b></p>
+  </div>
+
+  <!-- ═══════════════ MAIN APP ═══════════════ -->
+  <div class="screen app-screen" id="screen-app">
+    <div class="top-bar" id="topBar">
+      <div class="brand-mini" onclick="App.go('home')">
+        <svg viewBox="0 0 100 100"><use href="#fameMark"/></svg>
+        <span>F.A.M.E</span>
+      </div>
+      <div class="top-actions">
+        <button class="iconbtn" id="btnCast" aria-label="Cast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><line x1="2" y1="20" x2="2.01" y2="20"/></svg>
+        </button>
+        <button class="iconbtn" id="btnNotifications" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </button>
+        <button class="avatar-mini" id="btnAvatar" aria-label="Profile"></button>
+      </div>
+    </div>
+
+    <div class="app-scroll" id="appScroll">
+      <div id="viewRoot"></div>
+    </div>
+
+    <nav class="tab-bar" id="tabBar">
+      <button class="tab active" data-tab="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="tab" data-tab="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span>Search</span>
+      </button>
+      <button class="tab" data-tab="mylist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span>My List</span>
+      </button>
+      <button class="tab" data-tab="downloads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>
+        <span>Downloads</span>
+      </button>
+      <button class="tab" data-tab="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ═══════════════ DETAIL SHEET ═══════════════ -->
+  <div class="sheet-bd" id="sheetBd"></div>
+  <div class="sheet" id="sheet"></div>
+
+  <!-- ═══════════════ PLAYER ═══════════════ -->
+  <div class="player" id="player">
+    <video id="video" playsinline preload="metadata" crossorigin="anonymous"></video>
+
+    <div class="pl-top">
+      <button class="pl-back" id="plBack" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
+      </button>
+      <div class="pl-meta">
+        <div class="t" id="plTitle"></div>
+        <div class="s" id="plSub"></div>
+      </div>
+    </div>
+
+    <div class="pl-title bump" id="plCenterTitle"></div>
+
+    <div class="pl-center">
+      <button class="pl-btn" id="plBack10" aria-label="Back 10 seconds">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      </button>
+      <button class="pl-btn main" id="plPlay" aria-label="Play or pause">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="plPlayIcon"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="pl-btn" id="plFwd10" aria-label="Forward 10 seconds">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+      </button>
+    </div>
+
+    <div class="pl-subs" id="plSubs" hidden><span></span></div>
+
+    <div class="pl-bottom">
+      <div class="pl-scrub" id="plScrub">
+        <div class="fill" id="plFill"></div>
+      </div>
+      <div class="pl-time"><span id="plNow">0:00</span><span id="plDur">0:00</span></div>
+      <div class="pl-controls">
+        <button class="pl-pill on" id="plCC">CC</button>
+        <button class="pl-pill" id="plQuality">Auto · 1080p</button>
+        <span class="pl-spacer"></span>
+        <button class="pl-pill" id="plNext" style="display:none">Next Episode</button>
+        <button class="pl-pill" id="plSpeed">1x</button>
+      </div>
+    </div>
+
+    <!-- Ad overlay -->
+    <div class="ad" id="adOverlay">
+      <div class="ad-body">
+        <div class="ad-art"></div>
+        <div class="ad-content">
+          <div class="ad-lbl">Advertisement</div>
+          <h3>Your Ad Could Be Here</h3>
+          <p>Reach millions of engaged viewers across Southern Africa. Upgrade to Ad-less for R39.90/month and remove all ads.</p>
+          <button class="btn btn-primary" id="adUpgrade">Upgrade to Ad-less · R39.90</button>
+        </div>
+      </div>
+      <div class="ad-bar">
+        <span class="t" id="adCount">Ad 1 of 1 · 15s</span>
+        <span class="grow"><i id="adFill"></i></span>
+        <button class="ad-skip" id="adSkip" disabled>Skip Ad</button>
+      </div>
+    </div>
+
+    <!-- End card -->
+    <div class="pl-end" id="plEnd">
+      <h3 id="plEndTitle">Up next</h3>
+      <p id="plEndDesc">Continue watching more African stories on F.A.M.E.</p>
+      <button class="btn btn-primary" id="plEndNext" style="display:none">Play Next Episode</button>
+      <button class="btn btn-outline" id="plEndClose">Back to Browse</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TOAST ═══════════════ -->
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   F.A.M.E VOD APP — Prototype
+   ══════════════════════════════════════════════════════════════
+   Content note: real content licensing is signed at launch, so the
+   catalogue below uses real public-domain sample videos for playback,
+   gradient placeholder posters for key art, and detailed fictional
+   metadata that matches the F.A.M.E brand brief.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── Sample video pool (Google's public test bucket — safe for demo) ─── */
+const V = {
+  bunny:   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  dream:   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+  blazes:  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  escapes: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+  fun:     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+  joy:     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+  melt:    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+  sintel:  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+  subaru:  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+  steel:   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+};
+
+/* ─── Catalogue ─── */
+const CATALOGUE = [
+  { id:'f01', title:'Black Power: The Rise', type:'series', genre:'Drama', year:2026, rating:'16',
+    seasons:2, eps:8, runtime:44, isOriginal:true, isKids:false, trend:1,
+    art:['#E5007E','#4A0E7A'], video:V.bunny,
+    synopsis:'Six young entrepreneurs from eMalahleni turn unemployment into opportunity and build empires from nothing.',
+    cast:['Sipho Ndlovu','Lerato Mokoena','Thabo Dlamini'],
+    epTitles:['The Spark','Hustle or Starve','First Client','The Setback','Partners in Power','Going National','The Takeover','Legacy'] },
+
+  { id:'f02', title:'eMalahleni Nights', type:'movie', genre:'Thriller', year:2026, rating:'16',
+    runtime:112, isOriginal:true, isKids:false, trend:2,
+    art:['#0F2027','#E5007E'], video:V.dream,
+    synopsis:'A night-shift taxi driver witnesses something he was never meant to see. By sunrise, the whole town is looking for him.',
+    cast:['Mandla Zulu','Nomsa Khumalo'] },
+
+  { id:'f03', title:'The Hustle Squad', type:'series', genre:'Reality', year:2026, rating:'13',
+    seasons:1, eps:10, runtime:42, isOriginal:true, isKids:false, trend:3,
+    art:['#FF8008','#4A0E7A'], video:V.blazes,
+    synopsis:'Ten young hustlers. One R100 000 prize. Zero shortcuts. The reality show that turns side-hustles into real businesses.',
+    cast:['Various'], epTitles:['Pitch Day','The Grind','Cash Flow','The Pivot','Pressure Test','Team Up','The Fallout','Final Pitch','The Winner','Reunion'] },
+
+  { id:'f04', title:'Kasi Kings', type:'series', genre:'Reality', year:2025, rating:'PG',
+    seasons:3, eps:12, runtime:38, isOriginal:false, isKids:false, trend:4,
+    art:['#F7971E','#FFD200'], video:V.escapes,
+    synopsis:'The streets have legends. Meet the kings of the kasi — the barbers, spaza bosses and trendsetters who run their neighbourhoods.',
+    cast:['Various'] },
+
+  { id:'f05', title:'Ubuntu Rising', type:'documentary', genre:'Documentary', year:2026, rating:'PG13',
+    runtime:88, isOriginal:true, isKids:false, trend:5,
+    art:['#134E5E','#71B280'], video:V.fun,
+    synopsis:'Across eight Southern African countries, ordinary people are rebuilding communities through ubuntu.',
+    cast:['Narrated by Zanele Mbeki'] },
+
+  { id:'f06', title:'Joburg 2040', type:'series', genre:'Sci-Fi', year:2026, rating:'16',
+    seasons:1, eps:6, runtime:48, isOriginal:true, isKids:false, trend:6,
+    art:['#1F1C2C','#E5007E'], video:V.joy,
+    synopsis:'In a neon-soaked Johannesburg of 2040, a data courier discovers a secret that could free — or enslave — the whole continent.',
+    cast:['Kagiso Mahlangu','Aisha Patel'], epTitles:['Neon Sunrise','The Drop','Ghost Protocol','Free City','The Architect','2040'] },
+
+  { id:'f07', title:'Soweto Beat', type:'music', genre:'Music', year:2026, rating:'PG',
+    runtime:64, isOriginal:false, isKids:false, trend:7,
+    art:['#8E2DE2','#E5007E'], video:V.melt,
+    synopsis:'The definitive collection of Soweto music videos — amapiano, kwaito, gospel and everything in between.',
+    cast:['Various Artists'] },
+
+  { id:'f08', title:'Little Legends', type:'series', genre:'Animation', year:2026, rating:'ALL',
+    seasons:2, eps:12, runtime:22, isOriginal:false, isKids:true, trend:8,
+    art:['#00B4DB','#0083B0'], video:V.bunny,
+    synopsis:'Join Thandi the tortoise and Bongi the meerkat as they learn big lessons about courage, kindness and teamwork.',
+    cast:['Voice cast'], epTitles:['The Big Race','Sharing is Caring','Rainy Day','The Lost Kite','Team Spirit','Brave Little Heart','Kindness Club','The Talent Show','Counting Stars','The New Friend','Slow and Steady','Big Dreams'] },
+
+  { id:'f09', title:"Mama's Kitchen", type:'series', genre:'Food', year:2025, rating:'PG',
+    seasons:2, eps:10, runtime:40, isOriginal:false, isKids:false, trend:9,
+    art:['#F2994A','#8E0E00'], video:V.sintel,
+    synopsis:"Ten grandmothers. Ten family recipes. One kitchen where the real secret ingredient is love.",
+    cast:['Various'] },
+
+  { id:'f10', title:'Taxi Wars', type:'series', genre:'Action Comedy', year:2026, rating:'16',
+    seasons:1, eps:8, runtime:42, isOriginal:true, isKids:false, trend:10,
+    art:['#FC466B','#3F5EFB'], video:V.subaru,
+    synopsis:'Two rival taxi associations. One route. And a driver caught in the middle who just wants to get home.',
+    cast:['Skhumbuzo Mahlangu','Ntando Duma'], epTitles:['Rank Rules','The Shortcut','Fare Wars','Route 7','The Union','Smoke & Mirrors','Last Trip','Home'] },
+
+  { id:'f11', title:'The Last Mine', type:'movie', genre:'Drama', year:2025, rating:'16',
+    runtime:124, isOriginal:false, isKids:false, trend:11,
+    art:['#232526','#414345'], video:V.steel,
+    synopsis:'When the mine closes, a whole town must decide who it wants to become. A quiet, devastating South African story.',
+    cast:['John Kani','Hlubi Mboya'] },
+
+  { id:'f12', title:'FAME Live: Awards 2026', type:'live', genre:'Event', year:2026, rating:'PG',
+    runtime:180, isOriginal:false, isKids:false, trend:12,
+    art:['#E5007E','#FFB800'], video:V.bunny,
+    synopsis:"The 11th annual Streaming on F.A.M.E Awards — live from Johannesburg.",
+    cast:['Live broadcast'] },
+
+  { id:'f13', title:'Young Hustlers Academy', type:'educational', genre:'Business', year:2026, rating:'PG',
+    seasons:1, eps:10, runtime:32, isOriginal:true, isKids:false, trend:13,
+    art:['#11998E','#38EF7D'], video:V.dream,
+    synopsis:'A step-by-step course from real founders: how to register a business, price your product and create jobs in your community.',
+    cast:['Matodzi Makananisa'], epTitles:['The Idea','Register It','Price It Right','Find Customers','Cash Flow 101','Hire Smart','Marketing on R0','Tax & Compliance','Scale Up','Pay It Forward'] },
+
+  { id:'f14', title:"Sibongile's Choice", type:'series', genre:'Telenovela', year:2026, rating:'13',
+    seasons:2, eps:20, runtime:44, isOriginal:false, isKids:false, trend:14,
+    art:['#C33764','#1D2671'], video:V.escapes,
+    synopsis:'Sibongile has two suitors, one family business and a secret that could burn it all down.',
+    cast:['Zodwa Ntuli','Sibusiso Nkosi'] },
+
+  { id:'f15', title:'Pan African Voices', type:'documentary', genre:'Documentary', year:2025, rating:'PG13',
+    runtime:96, isOriginal:false, isKids:false, trend:15,
+    art:['#3A1C71','#D76D77'], video:V.fun,
+    synopsis:'Poets, painters and producers from Lagos to Lusaka talk about what it means to tell African stories to the world.',
+    cast:['Various'] },
+
+  { id:'f16', title:'Groove Nation', type:'music', genre:'Music', year:2026, rating:'PG',
+    runtime:52, isOriginal:false, isKids:false, trend:16,
+    art:['#F953C6','#B91D73'], video:V.blazes,
+    synopsis:'Non-stop amapiano and Afro-house visuals. The soundtrack to your weekend, on demand.',
+    cast:['Various Artists'] },
+
+  { id:'f17', title:'Short Cuts Vol. 1', type:'short', genre:'Anthology', year:2026, rating:'16',
+    runtime:70, isOriginal:true, isKids:false, trend:17,
+    art:['#654EA3','#EAAFC8'], video:V.joy,
+    synopsis:'Eight short films from eight emerging South African directors.',
+    cast:['New talent'] },
+
+  { id:'f18', title:'The Startup Diaries', type:'educational', genre:'Business', year:2025, rating:'PG',
+    seasons:1, eps:8, runtime:36, isOriginal:false, isKids:false, trend:18,
+    art:['#00C9FF','#92FE9D'], video:V.melt,
+    synopsis:'Follow four township startups over 12 months — the wins, the failures and the invoices nobody paid.',
+    cast:['Various'] },
+
+  { id:'f19', title:'Night Drive', type:'movie', genre:'Thriller', year:2026, rating:'16',
+    runtime:98, isOriginal:true, isKids:false, trend:19,
+    art:['#0F0C29','#E5007E'], video:V.steel,
+    synopsis:'A ride-share driver takes one last fare before midnight. The passenger has other plans.',
+    cast:['Tumisho Masha','Khanyi Mbau'] },
+
+  { id:'f20', title:'Amakhosi: The Story', type:'documentary', genre:'Sport', year:2025, rating:'PG',
+    runtime:104, isOriginal:false, isKids:false, trend:20,
+    art:['#B79891','#94716B'], video:V.subaru,
+    synopsis:"Inside one of Africa's greatest football clubs — the glory, the politics and the fans.",
+    cast:['Various'] },
+
+  /* Kids extras */
+  { id:'k01', title:'Jungle Jamboree', type:'series', genre:'Animation', year:2026, rating:'ALL',
+    seasons:1, eps:10, runtime:22, isOriginal:false, isKids:true, trend:30,
+    art:['#43C6AC','#191654'], video:V.fun,
+    synopsis:'Sing, dance and learn with the animals of Jungle Jamboree!',
+    cast:['Voice cast'], epTitles:['Hello Jungle','Counting Monkeys','The Big Sing','Colours Everywhere','Rainy Rhymes','Dance Party','Little Helpers','Bedtime Tales','Shapes Safari','Goodnight Jungle'] },
+
+  { id:'k02', title:'Super Sipho', type:'series', genre:'Animation', year:2026, rating:'ALL',
+    seasons:1, eps:8, runtime:24, isOriginal:false, isKids:true, trend:31,
+    art:['#FF512F','#DD2476'], video:V.joy,
+    synopsis:"By day he's a normal kid. By night he saves the neighbourhood — with kindness.",
+    cast:['Voice cast'], epTitles:['The Origin','Cat Rescue','Kindness Day','The Bully','Power Out','Helping Hand','The Parade','Heroes All'] },
+
+  { id:'k03', title:'Story Time with Gogo', type:'educational', genre:'Kids', year:2026, rating:'ALL',
+    seasons:1, eps:12, runtime:18, isOriginal:false, isKids:true, trend:32,
+    art:['#FDC830','#F37335'], video:V.bunny,
+    synopsis:"Gogo tells the best bedtime stories in the whole world. Shhh... it's story time.",
+    cast:['Gogo'] }
+];
+
+const SUBS_LINES = [
+  "You don't wait for opportunity. You build it.",
+  "Every hustle starts with one small yes.",
+  "This is our stage. This is our story.",
+  "If not us, then who? If not now, then when?",
+  "The kasi raised us — now we raise the kasi."
+];
+
+const PLANS = {
+  ad:     { name:'Ad Supported',      price:'R29.90', desc:'Ads during viewing' },
+  adless: { name:'Ad-less Experience', price:'R39.90', desc:'No advertising during viewing' }
+};
+
+const QUALITIES = ['Auto · 1080p','1080p Full HD','720p HD','480p SD (Data Saver)'];
+const SPEEDS = [1,1.25,1.5,2];
+const KIDS_PIN = '1234';
+
+/* ══════════════════════════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════════════════════════ */
+const S = {
+  get(k,f){ try{ const v=localStorage.getItem('fame.vod.'+k); return v?JSON.parse(v):f; }catch(e){ return f; } },
+  set(k,v){ try{ localStorage.setItem('fame.vod.'+k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem('fame.vod.'+k); }catch(e){} }
+};
+
+const state = {
+  user: S.get('user', null),            // { name, email }
+  plan: S.get('plan', 'ad'),            // 'ad' | 'adless'
+  profiles: S.get('profiles', null),    // array of profiles
+  activeProfile: S.get('activeProfile', null),
+  myList: new Set(S.get('myList', [])),
+  downloads: new Set(S.get('downloads', [])),
+  progress: S.get('progress', {}),      // { [id]: { t, dur, ep, updated } }
+  authMode: 'signin',                   // 'signin' | 'signup'
+  tab: 'home',
+  searchQ: '',
+  searchCat: 'all',
+  subs: S.get('subs', true),
+  quality: S.get('quality', 'Auto · 1080p'),
+  speed: 1,
+  notifications: S.get('notifications', true),
+  autoplay: S.get('autoplay', true),
+  dataSaver: S.get('dataSaver', false),
+  player: {
+    item: null, epIndex: 0,
+    playing: false, timer: null,
+    adTimer: null, adPlaying: false,
+    controlsTimer: null,
+    lastDuration: 0
+  }
+};
+
+function saveProgress(id, t, dur, ep){
+  const prev = state.progress[id] || {};
+  state.progress[id] = {
+    t: t,
+    dur: dur,
+    ep: ep !== undefined ? ep : (prev.ep || 0),
+    updated: Date.now()
+  };
+  // Remove if finished (>96%)
+  if(dur > 0 && t/dur > 0.96){
+    state.progress[id].t = 0;
+    state.progress[id].finished = true;
+  }
+  S.set('progress', state.progress);
+}
+
+function getProgress(id){
+  const p = state.progress[id];
+  if(!p || !p.dur || p.finished) return 0;
+  return Math.min(1, p.t / p.dur);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UTILITIES
+   ══════════════════════════════════════════════════════════════ */
+const $ = (s,r=document) => r.querySelector(s);
+const $$ = (s,r=document) => Array.from(r.querySelectorAll(s));
+
+function el(tag, attrs={}, html=''){
+  const e = document.createElement(tag);
+  for(const k in attrs){
+    if(k === 'class') e.className = attrs[k];
+    else if(k === 'style') e.style.cssText = attrs[k];
+    else if(k.startsWith('on') && typeof attrs[k] === 'function') e.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+    else e.setAttribute(k, attrs[k]);
+  }
+  if(html) e.innerHTML = html;
+  return e;
+}
+
+function fmt(s){
+  s = Math.max(0, Math.floor(s||0));
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function runtimeLabel(item){
+  if(item.seasons) return `${item.seasons} Season${item.seasons>1?'s':''}`;
+  const m = item.runtime || 90;
+  return `${Math.floor(m/60)}h ${m%60}m`;
+}
+
+function typeLabel(t){
+  const map = {series:'Series',movie:'Film',documentary:'Documentary',reality:'Reality',kids:'Kids',music:'Music',live:'Live',short:'Short',educational:'Learning'};
+  return map[t] || t;
+}
+
+function gradient(item, angle=135){
+  return `linear-gradient(${angle}deg,${item.art[0]} 0%,${item.art[1]} 100%)`;
+}
+
+function visibleCatalogue(){
+  if(state.activeProfile?.isKids) return CATALOGUE.filter(i=>i.isKids);
+  return CATALOGUE;
+}
+
+function findItem(id){ return CATALOGUE.find(i=>i.id===id); }
+
+function toast(msg, kind=''){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast on' + (kind ? ' ' + kind : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>{ t.classList.remove('on'); }, 2400);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   APP
+   ══════════════════════════════════════════════════════════════ */
+const App = {
+  init(){
+    if(state.user){
+      // Logged in — decide screen based on profiles
+      if(state.profiles && state.profiles.length){
+        this.showGate();
+      } else {
+        this.createDefaultProfiles();
+        this.showGate();
+      }
+    } else {
+      this.showAuth();
+    }
+    this.bindAuth();
+    this.bindTabs();
+    this.bindTopBar();
+    this.bindPlayer();
+    this.bindSheet();
+  },
+
+  showAuth(){
+    $$('.screen').forEach(s=>s.classList.remove('on'));
+    $('#screen-auth').classList.add('on');
+    state.authMode = 'signin';
+    this.setAuthMode('signin');
+  },
+
+  setAuthMode(mode){
+    state.authMode = mode;
+    const title = $('#authTitle'), sub = $('#authSub'), btn = $('#authSubmit');
+    const nameField = $('#nameField'), passField = $('#passField');
+    const toggleText = $('#authToggleText'), toggleBtn = $('#authToggleBtn');
+    $('#authErr').textContent = '';
+    if(mode === 'signup'){
+      title.textContent = 'Create your account';
+      sub.textContent = 'Start your F.A.M.E journey in under a minute.';
+      nameField.style.display = 'flex';
+      passField.style.display = 'flex';
+      btn.textContent = 'Create account';
+      toggleText.textContent = 'Already have an account?';
+      toggleBtn.textContent = 'Sign in';
+    } else {
+      title.textContent = 'Welcome back';
+      sub.textContent = 'Sign in to continue watching.';
+      nameField.style.display = 'none';
+      passField.style.display = 'flex';
+      btn.textContent = 'Sign in';
+      toggleText.textContent = 'New to F.A.M.E?';
+      toggleBtn.textContent = 'Create account';
+    }
+  },
+
+  bindAuth(){
+    $('#authToggleBtn').addEventListener('click', () => {
+      this.setAuthMode(state.authMode === 'signin' ? 'signup' : 'signin');
+    });
+
+    $('#authForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = $('#inpName').value.trim();
+      const email = $('#inpEmail').value.trim().toLowerCase();
+      const pass = $('#inpPass').value;
+      const err = $('#authErr');
+
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = 'Please enter a valid email.'; return; }
+      if(pass.length < 6){ err.textContent = 'Password must be at least 6 characters.'; return; }
+      if(state.authMode === 'signup' && name.length < 2){ err.textContent = 'Please enter your full name.'; return; }
+
+      state.user = {
+        name: state.authMode === 'signup' ? name : (state.user?.name || email.split('@')[0]),
+        email: email
+      };
+      S.set('user', state.user);
+
+      if(!state.profiles || state.profiles.length === 0){
+        this.createDefaultProfiles();
+      }
+      this.showGate();
+    });
+  },
+
+  createDefaultProfiles(){
+    const first = (state.user?.name || 'You').split(' ')[0];
+    state.profiles = [
+      { id:'p1', name:first || 'You', isKids:false, art:['#E5007E','#4A0E7A'], initials:(first[0]||'Y').toUpperCase() },
+      { id:'p2', name:'Family', isKids:false, art:['#11998E','#38EF7D'], initials:'F' },
+      { id:'pk', name:'Kids', isKids:true, art:['#00B4DB','#0083B0'], initials:'K' }
+    ];
+    S.set('profiles', state.profiles);
+  },
+
+  showGate(){
+    $$('.screen').forEach(s=>s.classList.remove('on'));
+    $('#screen-gate').classList.add('on');
+    this.renderGate();
+  },
+
+  renderGate(){
+    const wrap = $('#gateProfiles');
+    wrap.innerHTML = '';
+    state.profiles.forEach(p => {
+      const card = el('div', { class:'profile-card', onclick:()=>this.chooseProfile(p) });
+      const av = el('div', { class:'pav' });
+      av.style.background = `linear-gradient(135deg,${p.art[0]},${p.art[1]})`;
+      av.textContent = p.initials;
+      const name = el('b', {}, p.name);
+      card.appendChild(av); card.appendChild(name);
+      wrap.appendChild(card);
+    });
+    $('#gateSub').textContent = `Signed in as ${state.user.email} · Choose your profile`;
+  },
+
+  chooseProfile(p){
+    if(p.isKids){
+      const pin = prompt('Enter Kids Mode PIN (demo PIN: 1234)');
+      if(pin !== KIDS_PIN){ toast('Incorrect PIN','error'); return; }
+    }
+    state.activeProfile = p;
+    S.set('activeProfile', p);
+    this.showApp();
+  },
+
+  showApp(){
+    $$('.screen').forEach(s=>s.classList.remove('on'));
+    $('#screen-app').classList.add('on');
+    this.updateAvatar();
+    this.go(state.tab);
+  },
+
+  updateAvatar(){
+    const p = state.activeProfile;
+    if(!p) return;
+    const a = $('#btnAvatar');
+    a.style.background = `linear-gradient(135deg,${p.art[0]},${p.art[1]})`;
+    a.textContent = p.initials;
+  },
+
+  bindTabs(){
+    $$('#tabBar .tab').forEach(t => {
+      t.addEventListener('click', () => this.go(t.dataset.tab));
+    });
+  },
+
+  bindTopBar(){
+    $('#appScroll').addEventListener('scroll', () => {
+      $('#topBar').classList.toggle('solid', $('#appScroll').scrollTop > 30);
+    }, {passive:true});
+
+    $('#btnCast').addEventListener('click', () => toast('Casting to Smart TV — connect a device to start'));
+    $('#btnNotifications').addEventListener('click', () => toast('No new notifications right now'));
+    $('#btnAvatar').addEventListener('click', () => this.go('profile'));
+  },
+
+  go(tab){
+    state.tab = tab;
+    $$('#tabBar .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    $('#appScroll').scrollTop = 0;
+    const root = $('#viewRoot');
+    root.innerHTML = '';
+
+    switch(tab){
+      case 'home': this.renderHome(root); break;
+      case 'search': this.renderSearch(root); break;
+      case 'mylist': this.renderMyList(root); break;
+      case 'downloads': this.renderDownloads(root); break;
+      case 'profile': this.renderProfile(root); break;
+    }
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     HOME
+     ═══════════════════════════════════════════════════════ */
+  renderHome(root){
+    const cat = visibleCatalogue();
+    const kids = state.activeProfile?.isKids;
+
+    // ── Hero (kids get a kids hero)
+    const hero = kids ? cat.find(i=>i.id==='f08') : cat.find(i=>i.id==='f01');
+    if(hero) root.appendChild(this.buildHero(hero, kids));
+
+    // ── Kids banner
+    if(kids){
+      const banner = el('div', { class:'tile', style:'margin-top:20px' });
+      banner.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--grad-soft);border:1px solid rgba(229,0,126,.3);color:var(--pink);flex:none">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <div>
+            <b style="display:block;font-size:14px;margin-bottom:2px">Kids Mode is on</b>
+            <span style="color:var(--muted);font-size:12px">Only safe, age-appropriate content. No ads.</span>
+          </div>
+        </div>`;
+      root.appendChild(banner);
+    }
+
+    // ── Continue Watching
+    const cw = this.getContinueWatching();
+    if(cw.length) root.appendChild(this.buildRow('Continue Watching', cw, { type:'progress' }));
+
+    // ── Top 10
+    const top10 = [...cat].sort((a,b)=>a.trend-b.trend).slice(0,10);
+    if(top10.length && !kids) root.appendChild(this.buildRow('Top 10 in South Africa Today', top10, { type:'top10' }));
+
+    // ── FAME Originals
+    const originals = cat.filter(i=>i.isOriginal);
+    if(originals.length) root.appendChild(this.buildRow('FAME Originals', originals));
+
+    // ── New Releases
+    const newR = cat.filter(i=>i.year >= 2026).slice(0,12);
+    if(newR.length) root.appendChild(this.buildRow('New Releases', newR));
+
+    // ── Categories
+    const series = cat.filter(i=>i.type==='series');
+    if(series.length) root.appendChild(this.buildRow('Series & Reality', series));
+
+    const movies = cat.filter(i=>i.type==='movie');
+    if(movies.length) root.appendChild(this.buildRow('Movies', movies));
+
+    const docs = cat.filter(i=>i.type==='documentary');
+    if(docs.length) root.appendChild(this.buildRow('Documentaries', docs));
+
+    const learning = cat.filter(i=>i.type==='educational');
+    if(learning.length) root.appendChild(this.buildRow('Learn & Empower', learning));
+
+    const music = cat.filter(i=>i.type==='music' || i.type==='short');
+    if(music.length) root.appendChild(this.buildRow('Music & Shorts', music));
+
+    // ── Footer note
+    const foot = el('div', { style:'text-align:center;color:var(--dim);font-size:11px;padding:40px 20px 20px;line-height:1.7' });
+    foot.innerHTML = 'Streaming on F.A.M.E · Your Stage. Your Story.<br>Prototype · Concept catalogue with public-domain sample videos';
+    root.appendChild(foot);
+  },
+
+  buildHero(item, kids){
+    const hero = el('section', { class:'hero' });
+    hero.innerHTML = `
+      <div class="hero-bg" style="background:${gradient(item,120)}"></div>
+      <div class="hero-grad"></div>
+      <div class="hero-body">
+        <div class="hero-tag">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>
+          ${item.isOriginal ? 'FAME Original' : (kids ? 'Kids Pick' : 'Featured')}
+        </div>
+        <h1 class="hero-title">${item.title}</h1>
+        <div class="hero-meta">
+          <span class="hero-chip">${item.rating}</span>
+          <span>${item.year}</span><i></i>
+          <span>${runtimeLabel(item)}</span><i></i>
+          <span>${item.genre}</span><i></i>
+          <span>HD</span>
+        </div>
+        <p class="hero-syn">${item.synopsis}</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" data-play="${item.id}">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Play
+          </button>
+          <button class="btn btn-ghost" data-info="${item.id}">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+            More Info
+          </button>
+        </div>
+      </div>`;
+    hero.querySelector('[data-play]').addEventListener('click', ()=>this.play(item));
+    hero.querySelector('[data-info]').addEventListener('click', ()=>this.openDetail(item));
+    return hero;
+  },
+
+  buildRow(title, items, opts={}){
+    const row = el('section', { class:'row' + (opts.type==='top10'?' top10':'') });
+    row.innerHTML = `
+      <div class="row-head">
+        <h2>${title}</h2>
+      </div>
+      <div class="row-scroll"></div>`;
+    const rail = row.querySelector('.row-scroll');
+    items.forEach((item, idx) => {
+      if(opts.type === 'top10'){
+        const card = this.buildTop10Card(item, idx+1);
+        rail.appendChild(card);
+      } else {
+        const poster = this.buildPoster(item, { showProgress: opts.type === 'progress' });
+        rail.appendChild(poster);
+      }
+    });
+    return row;
+  },
+
+  buildTop10Card(item, rank){
+    const card = el('div', { class:'top-card' });
+    card.innerHTML = `
+      <div class="rank">${rank}</div>
+      <div class="poster-sm"></div>`;
+    const p = this.buildPoster(item, { mini:true });
+    p.style.width = '100%';
+    p.querySelector('.meta')?.remove();
+    p.querySelector('.art').style.aspectRatio = '2/3';
+    card.querySelector('.poster-sm').appendChild(p);
+    return card;
+  },
+
+  buildPoster(item, opts={}){
+    const wrap = el('div', { class:'poster' });
+    const inList = state.myList.has(item.id);
+    const prog = opts.showProgress ? getProgress(item.id) : 0;
+
+    wrap.innerHTML = `
+      <div class="art" style="--a1:${item.art[0]};--a2:${item.art[1]}">
+        <img data-src="" alt="" loading="lazy" style="display:none">
+        ${item.isOriginal ? `<div class="badge">FAME Original</div>` : (item.isKids ? `<div class="badge">Kids</div>` : '')}
+        <div class="ttl">${item.title}</div>
+        ${prog>0 ? `<div class="prog"><i style="width:${Math.round(prog*100)}%"></i></div>` : ''}
+        <button class="ql ${inList?'on':''}" aria-label="My List">
+          ${inList
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'}
+        </button>
+      </div>
+      <div class="meta">
+        <b>${item.title}</b>
+        <span>${typeLabel(item.type)} · ${item.year} · ${item.rating}</span>
+      </div>`;
+
+    wrap.querySelector('.art').addEventListener('click', (e)=>{
+      if(e.target.closest('.ql')) return;
+      this.openDetail(item);
+    });
+    wrap.querySelector('.ql').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      this.toggleList(item);
+      const btn = e.currentTarget;
+      const nowIn = state.myList.has(item.id);
+      btn.classList.toggle('on', nowIn);
+      btn.innerHTML = nowIn
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+    });
+
+    return wrap;
+  },
+
+  getContinueWatching(){
+    const list = visibleCatalogue();
+    const items = list.filter(i => getProgress(i.id) > 0.02 && getProgress(i.id) < 0.96);
+    // Sort by most recently watched
+    return items.sort((a,b) => {
+      const pa = state.progress[a.id]?.updated || 0;
+      const pb = state.progress[b.id]?.updated || 0;
+      return pb - pa;
+    }).slice(0, 8);
+  },
+
+  toggleList(item){
+    if(state.myList.has(item.id)){
+      state.myList.delete(item.id);
+      toast(`Removed "${item.title}" from My List`);
+    } else {
+      state.myList.add(item.id);
+      toast(`Added "${item.title}" to My List`, 'success');
+    }
+    S.set('myList', Array.from(state.myList));
+    if(state.tab === 'mylist') this.go('mylist');
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     SEARCH
+     ═══════════════════════════════════════════════════════ */
+  renderSearch(root){
+    root.innerHTML = `
+      <div class="page-head">
+        <h1>Search</h1>
+        <p>Find your next African story.</p>
+      </div>
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInput" type="search" placeholder="Titles, genres, cast…" autocomplete="off" value="${state.searchQ}">
+        <button class="search-clear ${state.searchQ?'on':''}" id="searchClear" aria-label="Clear">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="chips" id="searchChips"></div>
+      <div id="searchResults"></div>`;
+
+    const cats = ['all','originals','series','movies','documentaries','reality','kids','learning'];
+    const catLabels = { all:'All', originals:'Originals', series:'Series', movies:'Movies', documentaries:'Docs', reality:'Reality', kids:'Kids', learning:'Learning' };
+    const chipsWrap = root.querySelector('#searchChips');
+    cats.forEach(c => {
+      const b = el('button', { class:'chip' + (state.searchCat===c?' active':'') }, catLabels[c]);
+      b.addEventListener('click', ()=>{
+        state.searchCat = c;
+        $$('#searchChips .chip').forEach(x=>x.classList.toggle('active', x.textContent===catLabels[c]));
+        this.runSearch();
+      });
+      chipsWrap.appendChild(b);
+    });
+
+    const input = root.querySelector('#searchInput');
+    input.addEventListener('input', ()=>{
+      state.searchQ = input.value;
+      root.querySelector('#searchClear').classList.toggle('on', !!input.value);
+      this.runSearch();
+    });
+    input.addEventListener('focus', ()=>{ setTimeout(()=>{ input.scrollIntoView({block:'nearest'}); }, 100); });
+
+    root.querySelector('#searchClear').addEventListener('click', ()=>{
+      input.value = ''; state.searchQ = '';
+      root.querySelector('#searchClear').classList.remove('on');
+      this.runSearch();
+    });
+
+    setTimeout(()=>input.focus(), 100);
+    this.runSearch();
+  },
+
+  runSearch(){
+    const box = $('#searchResults');
+    if(!box) return;
+    const q = state.searchQ.trim().toLowerCase();
+    const cat = state.searchCat;
+
+    let items = visibleCatalogue();
+    if(cat !== 'all'){
+      items = items.filter(i => {
+        if(cat === 'originals') return i.isOriginal;
+        if(cat === 'kids') return i.isKids;
+        if(cat === 'learning') return i.type === 'educational';
+        if(cat === 'movies') return i.type === 'movie';
+        if(cat === 'series') return i.type === 'series' || i.type === 'reality';
+        if(cat === 'documentaries') return i.type === 'documentary';
+        if(cat === 'reality') return i.type === 'reality' || i.genre === 'Reality';
+        return true;
+      });
+    }
+    if(q){
+      items = items.filter(i =>
+        i.title.toLowerCase().includes(q) ||
+        i.genre.toLowerCase().includes(q) ||
+        i.type.toLowerCase().includes(q) ||
+        (i.cast||[]).join(' ').toLowerCase().includes(q)
+      );
+    }
+
+    if(!items.length){
+      box.innerHTML = `
+        <div class="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <h3>No results${q ? ` for "${state.searchQ}"` : ''}</h3>
+          <p>Try a different title, genre or actor.</p>
+        </div>`;
+      return;
+    }
+
+    const grid = el('div', { class:'grid' });
+    items.forEach(item => grid.appendChild(this.buildPoster(item)));
+    box.innerHTML = '';
+    box.appendChild(el('div', { style:'padding:8px 20px 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--muted)' },
+      `${q ? `Results for "${state.searchQ}"` : 'Browse'} · ${items.length}`));
+    box.appendChild(grid);
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     MY LIST
+     ═══════════════════════════════════════════════════════ */
+  renderMyList(root){
+    const items = visibleCatalogue().filter(i => state.myList.has(i.id));
+    root.innerHTML = `
+      <div class="page-head">
+        <h1>My List</h1>
+        <p>${items.length} saved title${items.length===1?'':'s'}</p>
+      </div>`;
+    if(!items.length){
+      const empty = el('div', { class:'empty' });
+      empty.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <h3>Your list is empty</h3>
+        <p>Tap the <b>+</b> on any poster to save it here for later.</p>
+        <button class="btn btn-primary btn-sm" style="max-width:220px" id="browseBtn">Browse the catalogue</button>`;
+      root.appendChild(empty);
+      empty.querySelector('#browseBtn').addEventListener('click', ()=>this.go('home'));
+      return;
+    }
+    const grid = el('div', { class:'grid' });
+    items.forEach(item => grid.appendChild(this.buildPoster(item)));
+    root.appendChild(grid);
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     DOWNLOADS
+     ═══════════════════════════════════════════════════════ */
+  renderDownloads(root){
+    const items = visibleCatalogue().filter(i => state.downloads.has(i.id));
+    const kids = state.activeProfile?.isKids;
+
+    root.innerHTML = `
+      <div class="page-head">
+        <h1>Downloads</h1>
+        <p>Watch offline. Save data.</p>
+      </div>`;
+
+    if(!kids){
+      const tile = el('div', { class:'tile' });
+      tile.innerHTML = `
+        <div class="list-item" style="padding:0;border:0">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v6H4zM4 14h16v6H4z"/><path d="M8 7h.01M8 17h.01"/></svg></div>
+          <div class="txt"><b>Smart Downloads</b><span>Auto-download the next episode over Wi-Fi</span></div>
+          <div class="switch ${state.dataSaver?'':'on'}" id="smartSwitch"></div>
+        </div>`;
+      root.appendChild(tile);
+      tile.querySelector('#smartSwitch').addEventListener('click', (e)=>{
+        e.currentTarget.classList.toggle('on');
+        toast(e.currentTarget.classList.contains('on') ? 'Smart Downloads on' : 'Smart Downloads off');
+      });
+    }
+
+    if(!items.length){
+      const empty = el('div', { class:'empty' });
+      empty.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>
+        <h3>No downloads yet</h3>
+        <p>Open a title and tap <b>Download</b> to watch it offline — perfect for saving data.</p>
+        <button class="btn btn-primary btn-sm" style="max-width:220px" id="findBtn">Find something to watch</button>`;
+      root.appendChild(empty);
+      empty.querySelector('#findBtn').addEventListener('click', ()=>this.go('home'));
+      return;
+    }
+    const grid = el('div', { class:'grid' });
+    items.forEach(item => grid.appendChild(this.buildPoster(item)));
+    root.appendChild(grid);
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     PROFILE
+     ═══════════════════════════════════════════════════════ */
+  renderProfile(root){
+    const p = state.activeProfile;
+    const kids = p.isKids;
+
+    root.innerHTML = `
+      <div class="profile-header">
+        <div class="big-avatar" style="background:linear-gradient(135deg,${p.art[0]},${p.art[1]})">${p.initials}</div>
+        <div class="ph-info">
+          <h1>${p.name}</h1>
+          <p>${state.user.email}${kids ? ' · Kids Profile' : ''}</p>
+        </div>
+      </div>`;
+
+    // Switch profile
+    const switchTile = el('div', { class:'tile' });
+    switchTile.innerHTML = `<h3 style="margin-bottom:14px">Switch Profile</h3>`;
+    const row = el('div', { style:'display:flex;gap:16px;flex-wrap:wrap' });
+    state.profiles.forEach(pr => {
+      const active = pr.id === p.id;
+      const card = el('div', { style:'display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;opacity:'+(active?'1':'.6') });
+      card.innerHTML = `
+        <div style="width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-family:Montserrat;font-weight:900;font-size:20px;color:#fff;background:linear-gradient(135deg,${pr.art[0]},${pr.art[1]});border:2px solid ${active ? 'var(--pink)' : 'transparent'}">${pr.initials}</div>
+        <b style="font-size:11.5px;color:${active?'var(--text)':'var(--muted)'}">${pr.name}</b>`;
+      card.addEventListener('click', ()=>this.chooseProfile(pr));
+      row.appendChild(card);
+    });
+    switchTile.appendChild(row);
+    root.appendChild(switchTile);
+
+    // Subscription
+    if(!kids){
+      const subTile = el('div', { class:'tile' });
+      subTile.innerHTML = `<h3>Subscription</h3><p style="margin-bottom:12px">No hidden fees. Cancel anytime.</p>`;
+      Object.entries(PLANS).forEach(([key, plan]) => {
+        const on = state.plan === key;
+        const row = el('div', { class:'plan-row' + (on?' on':'') });
+        row.innerHTML = `
+          <div class="radio"></div>
+          <div class="pr"><b>${plan.name}</b><span>${plan.desc}</span></div>
+          <div class="price">${plan.price}</div>`;
+        row.addEventListener('click', ()=>{
+          state.plan = key; S.set('plan', key);
+          toast(`Switched to ${plan.name} · ${plan.price}/month`, 'success');
+          this.renderProfile(root);
+        });
+        subTile.appendChild(row);
+      });
+      const meta = el('p', { style:'margin-top:14px;font-size:11.5px' });
+      meta.innerHTML = `Next payment: <b style="color:var(--text)">1 November 2026</b> · Visa •••• 4821`;
+      subTile.appendChild(meta);
+      root.appendChild(subTile);
+    }
+
+    // Preferences
+    const pref = el('div', { class:'tile' });
+    pref.innerHTML = `<h3>Preferences</h3>`;
+    pref.appendChild(this.makeToggleItem(
+      'Subtitles & Captions',
+      'English (default)',
+      state.subs,
+      (v)=>{ state.subs = v; S.set('subs', v); }
+    ));
+    pref.appendChild(this.makeToggleItem(
+      'Autoplay Next Episode',
+      'Plays the next episode automatically',
+      state.autoplay,
+      (v)=>{ state.autoplay = v; S.set('autoplay', v); }
+    ));
+    pref.appendChild(this.makeToggleItem(
+      'Data Saver',
+      'Stream at 480p on mobile networks',
+      state.dataSaver,
+      (v)=>{ state.dataSaver = v; S.set('dataSaver', v); }
+    ));
+    pref.appendChild(this.makeToggleItem(
+      'Push Notifications',
+      'New releases and recommendations',
+      state.notifications,
+      (v)=>{ state.notifications = v; S.set('notifications', v); }
+    ));
+    if(!kids){
+      pref.appendChild(this.makeArrowItem(
+        'Parental Controls',
+        'PIN: •••• · Age limit 16',
+        ()=>toast('Parental controls: PIN 1234 · age limit 16')
+      ));
+    }
+    root.appendChild(pref);
+
+    // Support
+    const sup = el('div', { class:'tile' });
+    sup.innerHTML = `<h3>Support</h3>`;
+    sup.appendChild(this.makeArrowItem(
+      'WhatsApp Support',
+      'Direct line · 072 785 7678',
+      ()=>toast('Opening WhatsApp support line: 072 785 7678')
+    ));
+    sup.appendChild(this.makeArrowItem(
+      'Help Centre',
+      'Devices, billing, playback',
+      ()=>toast('Help Centre coming soon')
+    ));
+    root.appendChild(sup);
+
+    // About
+    const ab = el('div', { class:'tile' });
+    ab.innerHTML = `
+      <h3>About F.A.M.E</h3>
+      <p style="margin-top:8px"><b style="color:var(--text)">Mission:</b> to entertain and empower Africa.</p>
+      <p style="margin-top:6px"><b style="color:var(--text)">Vision:</b> Africa's #1 Pan African storyteller and distributor.</p>
+      <p style="margin-top:6px;font-size:11px">Prototype v0.1 · Concept build · © 2026 Streaming on F.A.M.E</p>`;
+    root.appendChild(ab);
+
+    // Sign out
+    const so = el('button', { class:'signout' }, 'Sign Out');
+    so.addEventListener('click', ()=>{
+      if(confirm('Sign out of F.A.M.E?')){
+        S.del('activeProfile');
+        state.activeProfile = null;
+        this.showGate();
+      }
+    });
+    root.appendChild(so);
+  },
+
+  makeToggleItem(title, sub, initial, onChange){
+    const item = el('div', { class:'list-item' });
+    item.innerHTML = `
+      <div class="txt"><b>${title}</b><span>${sub}</span></div>
+      <div class="switch ${initial?'on':''}"></div>`;
+    item.addEventListener('click', ()=>{
+      const sw = item.querySelector('.switch');
+      sw.classList.toggle('on');
+      onChange(sw.classList.contains('on'));
+    });
+    return item;
+  },
+
+  makeArrowItem(title, sub, onClick){
+    const item = el('div', { class:'list-item' });
+    item.innerHTML = `
+      <div class="txt"><b>${title}</b><span>${sub}</span></div>
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>`;
+    item.addEventListener('click', onClick);
+    return item;
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     DETAIL SHEET
+     ═══════════════════════════════════════════════════════ */
+  bindSheet(){
+    $('#sheetBd').addEventListener('click', ()=>this.closeSheet());
+  },
+
+  openDetail(item){
+    const sheet = $('#sheet');
+    const inList = state.myList.has(item.id);
+    const inDownloads = state.downloads.has(item.id);
+    const isSeries = !!item.seasons;
+    const prog = getProgress(item.id);
+
+    const episodeList = isSeries ? (item.epTitles||[]).map((t,i)=>`
+      <div class="ep" data-ep="${i}">
+        <div class="num">${i+1}</div>
+        <div class="info"><b>${t}</b><span>${item.runtime} min · ${item.rating}</span></div>
+        <div class="play-ic">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>`).join('') : '';
+
+    const similar = CATALOGUE.filter(i=>i.id !== item.id && (i.genre === item.genre || i.type === item.type)).slice(0,8);
+
+    sheet.innerHTML = `
+      <div class="grip"></div>
+      <div class="sheet-hero">
+        <div class="bg" style="background:${gradient(item,140)}"></div>
+        <div class="grad"></div>
+        <button class="close" id="sheetClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <div class="ttl"><h2>${item.title}</h2></div>
+      </div>
+      <div class="sheet-body">
+        <div class="meta-line">
+          ${item.isOriginal ? `<span class="chip-badge" style="background:var(--grad);color:#fff;border:0">FAME Original</span>` : ''}
+          <span class="chip-badge">${item.rating}</span>
+          <span>${item.year}</span><i></i>
+          <span>${runtimeLabel(item)}</span><i></i>
+          <span>${item.genre}</span><i></i>
+          <span>HD</span>
+        </div>
+        <div class="sheet-actions">
+          <button class="btn btn-primary" id="sheetPlay">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            ${prog > 0 ? 'Resume' : 'Play'}
+          </button>
+          <button class="btn btn-ghost btn-icon" id="sheetList" aria-label="My List">
+            ${inList
+              ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>'
+              : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'}
+          </button>
+          <button class="btn btn-ghost btn-icon" id="sheetDl" aria-label="Download">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>
+          </button>
+        </div>
+        <p class="syn">${item.synopsis}</p>
+        <div class="meta-line">
+          <span style="color:var(--dim)">Cast:</span> <span>${(item.cast||[]).join(', ')}</span>
+        </div>
+        <div class="meta-line">
+          <span style="color:var(--dim)">Audio:</span> <span>English</span><i></i>
+          <span style="color:var(--dim)">Subtitles:</span> <span>English</span><i></i>
+          <span style="color:var(--dim)">Region:</span> <span>Southern Africa</span>
+        </div>
+
+        ${isSeries ? `<div class="section-label">Episodes · ${item.seasons} Season${item.seasons>1?'s':''}</div>${episodeList}` : ''}
+
+        ${similar.length ? `
+          <div class="section-label">More Like This</div>
+          <div class="similar" id="similarRow"></div>
+        ` : ''}
+      </div>`;
+
+    // Similar row
+    if(similar.length){
+      const row = sheet.querySelector('#similarRow');
+      similar.forEach(s => row.appendChild(this.buildPoster(s)));
+    }
+
+    // Bind
+    sheet.querySelector('#sheetClose').addEventListener('click', ()=>this.closeSheet());
+    sheet.querySelector('#sheetPlay').addEventListener('click', ()=>{
+      this.closeSheet();
+      this.play(item);
+    });
+    sheet.querySelector('#sheetList').addEventListener('click', (e)=>{
+      this.toggleList(item);
+      const now = state.myList.has(item.id);
+      e.currentTarget.innerHTML = now
+        ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+    });
+    sheet.querySelector('#sheetDl').addEventListener('click', ()=>{
+      this.toggleDownload(item);
+    });
+
+    sheet.querySelectorAll('.ep').forEach(ep => {
+      ep.addEventListener('click', ()=>{
+        this.closeSheet();
+        this.play(item, parseInt(ep.dataset.ep, 10));
+      });
+    });
+
+    $('#sheetBd').classList.add('on');
+    sheet.classList.add('on');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeSheet(){
+    $('#sheetBd').classList.remove('on');
+    $('#sheet').classList.remove('on');
+    document.body.style.overflow = '';
+  },
+
+  toggleDownload(item){
+    if(state.downloads.has(item.id)){
+      state.downloads.delete(item.id);
+      toast(`Removed download of "${item.title}"`);
+    } else {
+      state.downloads.add(item.id);
+      toast(`Downloading "${item.title}" — available offline soon`, 'success');
+      setTimeout(()=>{ if(state.tab === 'downloads') this.go('downloads'); }, 1200);
+    }
+    S.set('downloads', Array.from(state.downloads));
+  },
+
+  /* ═══════════════════════════════════════════════════════
+     PLAYER
+     ═══════════════════════════════════════════════════════ */
+  bindPlayer(){
+    const P = state.player;
+    const video = $('#video');
+    const player = $('#player');
+
+    // Scrub
+    const scrub = $('#plScrub');
+    const seek = (clientX)=>{
+      const r = scrub.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      if(video.duration) video.currentTime = pct * video.duration;
+    };
+    scrub.addEventListener('click', (e)=>seek(e.clientX));
+    let dragging = false;
+    scrub.addEventListener('pointerdown', (e)=>{ dragging = true; seek(e.clientX); e.preventDefault(); });
+    window.addEventListener('pointermove', (e)=>{ if(dragging) seek(e.clientX); });
+    window.addEventListener('pointerup', ()=>{ dragging = false; });
+
+    // Player buttons
+    $('#plBack').addEventListener('click', ()=>this.closePlayer());
+    $('#plPlay').addEventListener('click', ()=>this.togglePlay());
+    $('#plBack10').addEventListener('click', ()=>{ video.currentTime = Math.max(0, video.currentTime-10); this.showControls(); });
+    $('#plFwd10').addEventListener('click', ()=>{ video.currentTime = Math.min(video.duration||0, video.currentTime+10); this.showControls(); });
+
+    // Toggle controls on tap
+    player.addEventListener('click', (e)=>{
+      if(e.target.closest('button') || e.target.closest('.pl-scrub') || e.target.closest('.ad') || e.target.closest('.pl-end')) return;
+      player.classList.toggle('hide-ui');
+      if(!player.classList.contains('hide-ui')) this.showControls();
+    });
+
+    // Subtitles toggle
+    $('#plCC').addEventListener('click', (e)=>{
+      state.subs = !state.subs; S.set('subs', state.subs);
+      e.currentTarget.classList.toggle('on', state.subs);
+      $('#plSubs').hidden = !state.subs;
+    });
+
+    // Quality
+    $('#plQuality').addEventListener('click', (e)=>{
+      const i = (QUALITIES.indexOf(state.quality)+1) % QUALITIES.length;
+      state.quality = QUALITIES[i]; S.set('quality', state.quality);
+      e.currentTarget.textContent = state.quality;
+      toast('Quality: ' + state.quality);
+    });
+
+    // Speed
+    $('#plSpeed').addEventListener('click', (e)=>{
+      const i = (SPEEDS.indexOf(state.speed)+1) % SPEEDS.length;
+      state.speed = SPEEDS[i];
+      video.playbackRate = state.speed;
+      e.currentTarget.textContent = state.speed + 'x';
+    });
+
+    // Next episode
+    $('#plNext').addEventListener('click', ()=>this.playNextEpisode());
+
+    // Ad controls
+    $('#adSkip').addEventListener('click', ()=>this.skipAd());
+    $('#adUpgrade').addEventListener('click', ()=>{
+      state.plan = 'adless'; S.set('plan', 'adless');
+      clearInterval(P.adTimer);
+      toast('Upgraded to Ad-less · R39.90/month', 'success');
+      this.startPlayback();
+    });
+
+    // End card
+    $('#plEndNext').addEventListener('click', ()=>this.playNextEpisode());
+    $('#plEndClose').addEventListener('click', ()=>this.closePlayer());
+
+    // Video events
+    video.addEventListener('timeupdate', ()=>{
+      if(P.adPlaying) return;
+      const cur = video.currentTime, dur = video.duration || 0;
+      const fill = $('#plFill');
+      const pct = dur ? (cur/dur)*100 : 0;
+      fill.style.width = pct + '%';
+      $('#plNow').textContent = fmt(cur);
+      if(dur) $('#plDur').textContent = fmt(dur);
+      // Subtitles
+      if(state.subs && !$('#plSubs').hidden && dur){
+        const line = SUBS_LINES[Math.floor(cur/45) % SUBS_LINES.length];
+        $('#plSubs').firstElementChild.textContent = line;
+      }
+      // Save progress every ~5s
+      if(P.item && dur && Math.floor(cur) % 5 === 0 && cur > 1){
+        saveProgress(P.item.id, cur, dur, P.epIndex);
+      }
+    });
+
+    video.addEventListener('loadedmetadata', ()=>{
+      $('#plDur').textContent = fmt(video.duration);
+      // Resume
+      if(P.item){
+        const p = state.progress[P.item.id];
+        if(p && p.dur && !p.finished && p.ep === P.epIndex && p.t > 3 && p.t < (video.duration - 10)){
+          video.currentTime = p.t;
+        }
+      }
+    });
+
+    video.addEventListener('play', ()=>this.updatePlayIcon(true));
+    video.addEventListener('pause', ()=>this.updatePlayIcon(false));
+
+    video.addEventListener('ended', ()=>{
+      if(P.item){
+        const dur = video.duration;
+        saveProgress(P.item.id, dur, dur, P.epIndex);
+        // Remove from progress (finished)
+        state.progress[P.item.id].finished = true;
+        S.set('progress', state.progress);
+      }
+      // Autoplay next ep?
+      if(state.autoplay && P.item?.seasons && P.item.epTitles && P.epIndex < P.item.epTitles.length - 1){
+        setTimeout(()=>this.playNextEpisode(), 800);
+      } else {
+        this.showEndCard();
+      }
+    });
+
+    // Auto-hide controls
+    ['click', 'pointermove', 'touchstart'].forEach(ev => {
+      player.addEventListener(ev, ()=>{ if(P.playing && !P.adPlaying) this.showControls(); }, {passive:true});
+    });
+  },
+
+  play(item, epIndex = 0){
+    const P = state.player;
+    P.item = item;
+    P.epIndex = epIndex;
+    P.adPlaying = false;
+
+    const video = $('#video');
+    video.pause();
+    video.src = item.video;
+    video.playbackRate = state.speed;
+
+    $('#plTitle').textContent = item.title;
+    $('#plSub').textContent = item.seasons
+      ? `Season 1 · Episode ${epIndex+1}${item.epTitles ? ' · ' + item.epTitles[epIndex] : ''}`
+      : `${item.year} · ${item.genre}`;
+    $('#plCenterTitle').textContent = item.title;
+    $('#plCenterTitle').classList.remove('bump');
+    void $('#plCenterTitle').offsetWidth;
+    $('#plCenterTitle').classList.add('bump');
+
+    $('#plCC').classList.toggle('on', state.subs);
+    $('#plSubs').hidden = !state.subs;
+    $('#plQuality').textContent = state.quality;
+    $('#plSpeed').textContent = state.speed + 'x';
+    $('#plNext').style.display = item.seasons ? 'inline-flex' : 'none';
+
+    $('#plEnd').classList.remove('on');
+    $('#player').classList.add('on');
+    $('#player').classList.remove('hide-ui');
+    document.body.style.overflow = 'hidden';
+
+    const needsAd = state.plan === 'ad' && !state.activeProfile?.isKids;
+    if(needsAd) this.playAd(() => this.startPlayback());
+    else this.startPlayback();
+  },
+
+  startPlayback(){
+    const P = state.player;
+    $('#adOverlay').classList.remove('on');
+    P.adPlaying = false;
+    const video = $('#video');
+    video.play().then(()=>{
+      P.playing = true;
+      this.updatePlayIcon(true);
+      this.showControls();
+    }).catch((err)=>{
+      console.warn('Play failed:', err);
+      // Some browsers block autoplay — user must tap play
+      this.updatePlayIcon(false);
+    });
+  },
+
+  playAd(onDone){
+    const P = state.player;
+    P.adPlaying = true;
+    P.playing = false;
+    this.updatePlayIcon(false);
+
+    const overlay = $('#adOverlay');
+    overlay.classList.add('on');
+    let remaining = 15;
+    const total = 15;
+    const skipBtn = $('#adSkip');
+    skipBtn.disabled = true;
+    skipBtn.textContent = 'Skip Ad';
+
+    const tick = ()=>{
+      remaining -= 1;
+      const elapsed = total - remaining;
+      $('#adCount').textContent = `Ad 1 of 1 · ${remaining}s`;
+      $('#adFill').style.width = (elapsed/total*100) + '%';
+      if(elapsed >= 5) skipBtn.disabled = false;
+      if(remaining <= 0){
+        clearInterval(P.adTimer);
+        onDone();
+      }
+    };
+    $('#adCount').textContent = `Ad 1 of 1 · ${remaining}s`;
+    $('#adFill').style.width = '0%';
+    clearInterval(P.adTimer);
+    P.adTimer = setInterval(tick, 1000);
+  },
+
+  skipAd(){
+    clearInterval(state.player.adTimer);
+    this.startPlayback();
+  },
+
+  togglePlay(){
+    const P = state.player;
+    if(P.adPlaying) return;
+    const video = $('#video');
+    if(video.paused) video.play().catch(()=>{});
+    else video.pause();
+  },
+
+  updatePlayIcon(playing){
+    $('#plPlayIcon').innerHTML = playing
+      ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>'
+      : '<path d="M8 5v14l11-7z"/>';
+    state.player.playing = playing;
+  },
+
+  showControls(){
+    const player = $('#player');
+    player.classList.remove('hide-ui');
+    clearTimeout(state.player.controlsTimer);
+    if(state.player.playing && !state.player.adPlaying){
+      state.player.controlsTimer = setTimeout(()=>{
+        if(state.player.playing && !state.player.adPlaying) player.classList.add('hide-ui');
+      }, 3500);
+    }
+  },
+
+  showEndCard(){
+    const P = state.player;
+    $('#plEndTitle').textContent = 'Finished';
+    $('#plEndDesc').textContent = 'Browse more African stories on F.A.M.E.';
+    $('#plEndNext').style.display = 'none';
+    $('#plEnd').classList.add('on');
+  },
+
+  playNextEpisode(){
+    const P = state.player;
+    if(!P.item?.epTitles || P.epIndex >= P.item.epTitles.length - 1){
+      toast('You\'ve reached the last episode');
+      return;
+    }
+    this.play(P.item, P.epIndex + 1);
+  },
+
+  closePlayer(){
+    const P = state.player;
+    const video = $('#video');
+    if(P.item && video.duration){
+      saveProgress(P.item.id, video.currentTime, video.duration, P.epIndex);
+    }
+    video.pause();
+    clearInterval(P.timer);
+    clearInterval(P.adTimer);
+    P.playing = false;
+    P.adPlaying = false;
+    $('#player').classList.remove('on');
+    $('#adOverlay').classList.remove('on');
+    $('#plEnd').classList.remove('on');
+    document.body.style.overflow = '';
+    // Refresh current tab so progress shows
+    this.go(state.tab);
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+   ══════════════════════════════════════════════════════════════ */
+window.addEventListener('keydown', (e)=>{
+  const playerOn = $('#player').classList.contains('on');
+  const video = $('#video');
+
+  if(playerOn){
+    if(e.code === 'Space'){ e.preventDefault(); App.togglePlay(); }
+    if(e.code === 'ArrowRight'){ video.currentTime = Math.min(video.duration||0, video.currentTime+10); App.showControls(); }
+    if(e.code === 'ArrowLeft'){ video.currentTime = Math.max(0, video.currentTime-10); App.showControls(); }
+    if(e.code === 'KeyF'){ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); }
+    if(e.code === 'Escape'){ App.closePlayer(); }
+  } else {
+    if(e.code === 'Escape') App.closeSheet();
+    if(e.code === 'Slash' && document.activeElement.tagName !== 'INPUT'){
+      e.preventDefault();
+      App.go('search');
+    }
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   LAUNCH
+   ══════════════════════════════════════════════════════════════ */
+window.App = App;
+App.init();
+</script>
+</body>
+</html>
